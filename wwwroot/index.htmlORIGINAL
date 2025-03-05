@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" class="terria">
+<head>
+    <base href="/">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">  <!-- Use Chrome Frame in IE -->
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="description" content="A web map built on Terria Map">
+    <meta name="copyright" content="Copyright(c) 2012-2016 National ICT Australia Limited (NICTA), CSIRO Data61.  All rights reserved.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <link rel="apple-touch-icon" sizes="57x57" href="favicons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="favicons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="favicons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="favicons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="favicons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="favicons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="favicons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="favicons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="favicons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
+    <link rel="manifest" href="favicons/manifest.json">
+    <meta name="msapplication-TileColor" content="#282D32">
+    <meta name="msapplication-TileImage" content="favicons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#282D32">
+
+    <title>Terria Map</title>
+
+    <!-- Leaflet -->
+    <script>L_PREFER_CANVAS = true;</script>
+
+    <style>
+        /* Floating avatar button */
+        .floating-button {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          width: 50px;
+          height: 50px;
+          background-color: white;
+          border-radius: 50%;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 1000;
+        }
+      
+        .avatar {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+        }
+      
+        .floating-button:hover {
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+          transform: scale(1.05);
+          transition: all 0.2s ease;
+        }
+      
+        /* Chatbox modal */
+        .chatbox-modal {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 320px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    transition: all 0.3s ease;
+}
+
+.chatbox-modal.show {
+    display: block !important; /* 🔥 Force visibility */
+}
+      
+        .chatbox-header {
+          padding: 10px;
+          background-color: #5A67D8;
+          color: white;
+          text-align: center;
+          font-size: 18px;
+          font-weight: bold;
+        }
+      
+        .chatbox-body {
+          padding: 15px;
+          height: 220px;
+          overflow-y: auto;
+          background-color: #F9FAFB;
+        }
+      
+        .chatbox-footer {
+          display: flex;
+          align-items: center;
+          padding: 15px;
+          background-color: #f1f1f1;
+          border-top: 1px solid #ddd;
+        }
+      
+        .chatbox-footer input {
+          flex-grow: 1;
+          padding: 10px;
+          border-radius: 25px;
+          border: 1px solid #ccc;
+          outline: none;
+        }
+      
+        .chatbox-footer button {
+          background-color: #5A67D8;
+          color: white;
+          padding: 8px 15px;
+          border: none;
+          border-radius: 25px;
+          margin-left: 10px;
+          cursor: pointer;
+        }
+      
+        .chatbox-footer button:hover {
+          background-color: #434190;
+        }
+      
+        .chatbox-body p {
+          padding: 10px;
+          border-radius: 15px;
+          margin: 10px 0;
+          max-width: 70%;
+          word-wrap: break-word;
+        }
+      
+        .chatbox-body p.user {
+          background-color: #D6EAF8;
+          color: #0000FF;
+          text-align: right;
+          margin-left: auto;
+        }
+      
+        .chatbox-body p.bot {
+          background-color: #E8EAF6;
+          text-align: left;
+          margin-right: auto;
+        }
+      </style>
+      
+</head>
+
+<body>
+
+    <!-- Main UI container for Terria -->
+    <div id="ui"></div>
+
+    <!-- Load CesiumJS -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
+
+    <!-- Load the main TerriaMap JavaScript -->
+    <script src="build/TerriaMap.js"></script>
+
+    <!-- Load the custom script for injecting 3D models -->
+    <script src="https://cdn.jsdelivr.net/npm/mobx@6.9.0/dist/mobx.umd.production.min.js"></script>
+
+    <!-- Floating Avatar Button -->
+<div class="floating-button" id="floatingButton">
+    <img src="avatar.png" alt="Avatar" class="avatar">
+</div>
+
+<!-- Chatbox Modal -->
+<div class="chatbox-modal" id="chatboxModal">
+    <div class="chatbox-avatar">
+        <img src="avatar.png" alt="Avatar">
+    </div>
+    <div class="chatbox-header">Chat with Ad</div>
+    <div class="chatbox-body">
+        <p>Welcome! How can I help you today?</p>
+        <div class="chatbox-buttons">
+            <button data-intent="ask_downlink_user">Downlink User</button>
+            <button data-intent="show_low_prb_utilization">PRB Utilization</button>
+        </div>
+    </div>
+    <div class="chatbox-footer">
+        <input type="text" id="chatInput" placeholder="Type a message...">
+        <button id="sendButton">Send</button>
+    </div>
+</div>
+
+<script src="load3DModels.js"></script>
+    <script src="index.js"></script>
+
+</body>
+</html>

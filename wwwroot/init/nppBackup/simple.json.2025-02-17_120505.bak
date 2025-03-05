@@ -75,22 +75,14 @@
       "isMappable": true,
       "recordId": "ds-ga-93e51355-f5b9-4219-8dc4-815732d9e869"
     },
-    {
-      "name": "Cesium OSM Buildings",
-      "type": "3d-tiles",
-      "url": "https://assets.cesium.com/96188/tileset.json",
-      "ionAssetId": 96188,
-      "ionAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhZjZjMDliMC04MDQ3LTRhMWQtYmI4ZC1hOTQ2NzJmYTUyYzUiLCJpZCI6MjQ3MDE2LCJpYXQiOjE3Mzk0Mjk0NjB9.d7CmmzSJzF4xYG24dvZ76GjJVQL-0DiTihjq4bzdYxY",
-      "ionServer": "https://api.cesium.com/"
-    },
-    {
-      "name": "Google Photorealistic 3D Tiles",
-      "type": "3d-tiles",
-      "url": "https://assets.cesium.com/2275207/tileset.json",
-      "ionAssetId": 2275207,
-      "ionAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhZjZjMDliMC04MDQ3LTRhMWQtYmI4ZC1hOTQ2NzJmYTUyYzUiLCJpZCI6MjQ3MDE2LCJpYXQiOjE3Mzk0Mjk0NjB9.d7CmmzSJzF4xYG24dvZ76GjJVQL-0DiTihjq4bzdYxY",
-      "ionServer": "https://api.cesium.com/"
-    },
+	{
+	  "name": "Cesium OSM Buildings",
+	  "type": "3d-tiles",
+	  "url": "https://assets.cesium.com/96188/tileset.json",
+	  "ionAssetId": 96188,
+	  "ionAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhZjZjMDliMC04MDQ3LTRhMWQtYmI4ZC1hOTQ2NzJmYTUyYzUiLCJpZCI6MjQ3MDE2LCJpYXQiOjE3Mzk0Mjk0NjB9.d7CmmzSJzF4xYG24dvZ76GjJVQL-0DiTihjq4bzdYxY",
+	  "ionServer": "https://api.cesium.com/"
+	},
     {
       "name": "CSV",
       "type": "group",
