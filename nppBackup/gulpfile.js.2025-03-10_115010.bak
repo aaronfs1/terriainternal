@@ -71,15 +71,6 @@ gulp.task("write-version", function (done) {
 gulp.task("render-index", function renderIndex(done) {
   var ejs = require("ejs");
   var minimist = require("minimist");
-  var indexPath = path.join("wwwroot", "index.html");
-
-  // Check if index.html already exists
-  if (fs.existsSync(indexPath)) {
-    console.log("Skipping index.html generation as it already exists.");
-    done();
-    return;
-  }
-
   // Arguments written in skewer-case can cause problems (unsure why), so stick to camelCase
   var options = minimist(process.argv.slice(2), {
     string: ["baseHref"],
@@ -89,7 +80,7 @@ gulp.task("render-index", function renderIndex(done) {
   var index = fs.readFileSync("wwwroot/index.ejs", "utf8");
   var indexResult = ejs.render(index, { baseHref: options.baseHref });
 
-  fs.writeFileSync(indexPath, indexResult);
+  fs.writeFileSync(path.join("wwwroot", "index.html"), indexResult);
   done();
 });
 

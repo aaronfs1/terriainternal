@@ -28,9 +28,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function loadGeoJSONAndPlaceModels(terria) {
   console.log("📡 Fetching GeoJSON and adding base models...");
   try {
-    const geoJsonData = await Cesium.IonResource.fromAssetId(
+    window.geoJsonData = await Cesium.IonResource.fromAssetId(
       customgeoJsonAssetId
     ).then((res) => res.fetchJson());
+    console.log("✅ GeoJSON Data is globally accessible:", window.geoJsonData);
+
     console.log("✅ GeoJSON Data Loaded:", geoJsonData);
 
     if (!terria.currentViewer?.scene?.primitives) {
@@ -41,6 +43,52 @@ async function loadGeoJSONAndPlaceModels(terria) {
     }
 
     console.log("🛠️ terria.currentViewer.scene.primitives is available.");
+
+    // ✅ Make flyToSiteID globally accessible
+    window.flyToSiteID = function (siteID) {
+      console.log(`🚀 flyToSiteID triggered for: ${siteID}`);
+
+      if (!window.geoJsonData) {
+        console.error("❌ GeoJSON data is not loaded yet.");
+        return;
+      }
+
+      console.log("🔍 Searching for site in GeoJSON...");
+      const siteFeature = window.geoJsonData.features.find(
+        (feature) =>
+          feature.properties["siteid"].toString().toUpperCase() ===
+          siteID.toUpperCase()
+      );
+
+      if (!siteFeature) {
+        console.warn(`⚠️ Site ID ${siteID} not found in GeoJSON.`);
+        return;
+      }
+
+      const [longitude, latitude] = siteFeature.geometry.coordinates;
+      console.log(`📍 Site Found! Lat: ${latitude}, Lon: ${longitude}`);
+
+      if (
+        !window.terria ||
+        !window.terria.currentViewer ||
+        !window.terria.currentViewer.scene
+      ) {
+        console.error("❌ Cesium scene is not ready.");
+        return;
+      }
+
+      console.log("🎥 Flying camera to site...");
+      window.terria.currentViewer.scene.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 500), // 500m altitude
+        duration: 2,
+        orientation: {
+          heading: Cesium.Math.toRadians(0),
+          pitch: Cesium.Math.toRadians(-45),
+          roll: 0
+        }
+      });
+      console.log("✅ Camera movement triggered!");
+    };
 
     for (const feature of geoJsonData.features) {
       const { geometry, properties } = feature;
