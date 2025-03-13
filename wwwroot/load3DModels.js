@@ -79,11 +79,11 @@ async function loadGeoJSONAndPlaceModels(terria) {
 
       console.log("🎥 Flying camera to site...");
       window.terria.currentViewer.scene.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 500), // 500m altitude
+        destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 1000), // Adjust altitude for better top-down view
         duration: 2,
         orientation: {
           heading: Cesium.Math.toRadians(0),
-          pitch: Cesium.Math.toRadians(-45),
+          pitch: Cesium.Math.toRadians(-90), // Looking straight down
           roll: 0
         }
       });
