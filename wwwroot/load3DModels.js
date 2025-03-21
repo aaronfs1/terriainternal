@@ -1,3 +1,5 @@
+/* global Cesium */
+
 console.log("✅ load3DModels.js script is running...");
 
 // Use your *actual* Cesium Ion token here:

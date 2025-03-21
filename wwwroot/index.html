@@ -31,7 +31,7 @@
 
     <!-- Leaflet -->
     <script>L_PREFER_CANVAS = true;</script>
-
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
       .TerriaLogo___StyledImg-sc-bk2yek-0 {
     display: none !important;
@@ -164,6 +164,49 @@
           text-align: left;
           margin-right: auto;
         }
+
+        .tjs__buttons__btn--info:hover {
+          background-color: #b2b6fa;
+          transform: scale(1.05);
+        }
+
+        /* Top-Center Flex Wrapper */
+          .info-button-wrapper {
+            position: fixed;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center; /* Horizontally center */
+            z-index: 1000;
+          }
+
+          .tjs__buttons__btn--info {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #3c4656; /* Dark slate color like in image */
+            color: #ffffff;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 999px; /* Pill shape */
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s ease, transform 0.2s ease;
+          }
+
+          .tjs__buttons__btn--info:hover {
+            background-color: #66b1d8; /* Light blue hover like your image */
+            transform: scale(1.05);
+          }
+
+          .tjs__buttons__btn--info .icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+            opacity: 0.9;
+          }
       </style>
       
 </head>
@@ -181,7 +224,14 @@
 
     <!-- Load the custom script for injecting 3D models -->
     <script src="https://cdn.jsdelivr.net/npm/mobx@6.9.0/dist/mobx.umd.production.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script> -->
 
+    <div class="info-button-wrapper">
+      <button class="tjs__buttons__btn--info" onclick="window.open('http://localhost:3000/d/aefhk408ovk74e/cell-id-dashboard', '_blank'); return false;">
+        <img src="https://cdn-icons-png.flaticon.com/512/2041/2041637.png" alt="Data Icon" class="icon" />
+        View Dashboard Data
+      </button>
+    </div>     
     <!-- Floating Avatar Button -->
 <div class="floating-button" id="floatingButton">
     <img src="avatar.png" alt="Avatar" class="avatar">
@@ -212,7 +262,6 @@
 
 <script src="load3DModels.js"></script>
 <script src="index.js"></script>
-
 <script>
   document.addEventListener("DOMContentLoaded", function () {
       const refreshButton = document.getElementById("refreshChat");
@@ -220,7 +269,7 @@
       const chatInput = document.getElementById("chatInput");
       const sendButton = document.getElementById("sendButton");
 
-      const rasaServerUrl = "http://localhost:5005/webhooks/rest/webhook"; // Update with your Rasa server URL
+      const rasaServerUrl = "http://localhost:5005/webhooks/rest/webhook"; // Update with your RASA server URL
 
       function initializeButtons() {
           document.querySelectorAll(".chatbox-buttons button").forEach(button => {
@@ -232,9 +281,10 @@
       }
 
       function sendMessageToRasa(message) {
-        function isValidSiteID(input) {
-    return /^[a-zA-Z0-9]+$/.test(input);  // ✅ Matches alphanumeric site IDs like "2376A"
-}
+    // Function to check if the input is a valid CELL_ID (alphanumeric)
+    function isValidCellID(input) {
+        return /^[a-zA-Z0-9]+$/.test(input); // Matches alphanumeric strings
+    }
 
     // Append user message to chat
     const userMessage = document.createElement("p");
@@ -243,46 +293,66 @@
     chatBody.appendChild(userMessage);
     chatBody.scrollTop = chatBody.scrollHeight;
 
-    // ✅ Check if the message is a Site ID
-    if (isValidSiteID(message)) {
-    console.log(`📍 Recognized Site ID: ${message}`);
+    // Check if the message is an explicit "fly to site" command (e.g., "fly to site 1023C")
+    if (message.toLowerCase().startsWith("fly to site ")) {
+        const CELL_ID = message.substring("fly to site ".length).trim();
+        if (CELL_ID && isValidCellID(CELL_ID)) {
+            console.log(`📍 Recognized Cell ID for Fly-to-Site: ${CELL_ID}`);
 
-    // ✅ First, fly to the site
-    if (typeof window.flyToSiteID === "function") {
-        window.flyToSiteID(message);
-    } else {
-        console.error("❌ flyToSiteID function is not available.");
+            // Fly to the location on the map (if the function exists)
+            if (typeof window.flyToSiteID === "function") {
+                window.flyToSiteID(CELL_ID);
+            } else {
+                console.error("❌ flyToSiteID function is not available.");
+            }
+        }
+    }
+    // Default behavior for CELL_ID (e.g., "1023C")
+    else if (isValidCellID(message)) {
+        const CELL_ID = message.trim(); // Use the entire message as the CELL_ID
+        console.log(`📍 Recognized Cell ID: ${CELL_ID}`);
+
+        // Fly to the location on the map (if the function exists)
+        if (typeof window.flyToSiteID === "function") {
+            window.flyToSiteID(CELL_ID);
+        } else {
+            console.error("❌ flyToSiteID function is not available.");
+        }
+
+        // Open the Grafana dashboard for the CELL_ID in a new tab
+        const grafanaUrl = `http://localhost:3000/d/aefhk408ovk74e/cell-id-dashboard?orgId=1&var-cell_id=${encodeURIComponent(CELL_ID)}`;
+        const newTab = window.open(grafanaUrl, '_blank'); // Opens in a new tab
+
+        // Check if the new tab was blocked
+        if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+            alert("Popup blocked! Please allow popups for this site to open the Grafana dashboard.");
+        }
     }
 
-    // ✅ Then, also send the message to Rasa
-    console.log("📝 Sending Site ID to Rasa as a normal message...");
-} 
-
-// ✅ Always send the message to Rasa, whether it's a Site ID or not
-fetch(rasaServerUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: message })  // ✅ Ensures message always goes to Rasa
-})
-.then(response => response.json())
-.then(data => {
-    // Append bot response to chat
-    data.forEach(response => {
-        const botMessage = document.createElement("p");
-        botMessage.classList.add("bot");
-        botMessage.textContent = response.text;
-        chatBody.appendChild(botMessage);
+    // Always send the message to Rasa
+    fetch(rasaServerUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: message })  // ✅ Ensures message always goes to Rasa
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Append bot response to chat
+        data.forEach(response => {
+            const botMessage = document.createElement("p");
+            botMessage.classList.add("bot");
+            botMessage.textContent = response.text;
+            chatBody.appendChild(botMessage);
+        });
+        chatBody.scrollTop = chatBody.scrollHeight;
+    })
+    .catch(error => {
+        console.error("Error sending message:", error);
+        const errorMessage = document.createElement("p");
+        errorMessage.classList.add("bot");
+        errorMessage.textContent = "Sorry, an error occurred. Please try again.";
+        chatBody.appendChild(errorMessage);
     });
-    chatBody.scrollTop = chatBody.scrollHeight;
-})
-.catch(error => {
-    console.error("Error sending message:", error);
-    const errorMessage = document.createElement("p");
-    errorMessage.classList.add("bot");
-    errorMessage.textContent = "Sorry, an error occurred. Please try again.";
-    chatBody.appendChild(errorMessage);
-});
-
 }
 
       sendButton.addEventListener("click", function () {
@@ -307,10 +377,7 @@ fetch(rasaServerUrl, {
 
       initializeButtons(); // Ensure buttons work on page load
   });
-</script>
 
-
-<script>
   document.addEventListener("DOMContentLoaded", function () {
       console.log("🔍 Searching for Terria logo...");
 
@@ -325,6 +392,6 @@ fetch(rasaServerUrl, {
       }, 1000);
   });
 </script>
-
+  
 </body>
 </html>
