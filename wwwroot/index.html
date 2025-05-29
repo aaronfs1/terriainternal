@@ -86,7 +86,7 @@
     position: fixed;
     bottom: 80px;
     right: 20px;
-    width: 320px;
+    width: 600px;
     background-color: #ffffff;
     border-radius: 15px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
@@ -227,11 +227,40 @@
     <!-- <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script> -->
 
     <div class="info-button-wrapper">
-      <button class="tjs__buttons__btn--info" onclick="window.open('http://localhost:3000/d/aefhk408ovk74e/cell-id-dashboard', '_blank'); return false;">
+      <button class="tjs__buttons__btn--info" onclick="openGrafanaDashboard()">
         <img src="https://cdn-icons-png.flaticon.com/512/2041/2041637.png" alt="Data Icon" class="icon" />
-        View Dashboard Data
+        View Dashboard
       </button>
-    </div>     
+      <button class="tjs__buttons__btn--info" onclick="openBufferModal()">
+        <img src="https://cdn-icons-png.flaticon.com/512/2041/2041637.png" alt="PAVE Icon" class="icon" />
+        Run Process 
+      </button>
+    </div>
+
+    <div id="bufferModal" class="modal" style="display:none; position:fixed; top:10%; left:10%; width:80%; height:80%; background:white; z-index:1000; border: 2px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.5);">
+      <div style="padding:10px; text-align:right;">
+        <button onclick="closeBufferModal()">Close</button>
+      </div>
+      <iframe id="bufferFrame" src="" style="width:100%; height:90%; border:none;"></iframe>
+    </div>
+  </div>
+    
+    
+    <script>
+      function openBufferModal() {
+        const modal = document.getElementById('bufferModal');
+        const frame = document.getElementById('bufferFrame');
+        frame.src = "http://172.20.10.2:5000";
+        modal.style.display = "block";
+      }
+    
+      function closeBufferModal() {
+        const modal = document.getElementById('bufferModal');
+        const frame = document.getElementById('bufferFrame');
+        frame.src = ""; // Clear iframe on close
+        modal.style.display = "none";
+      }
+    </script>
     <!-- Floating Avatar Button -->
 <div class="floating-button" id="floatingButton">
     <img src="avatar.png" alt="Avatar" class="avatar">
@@ -252,6 +281,7 @@
         <div class="chatbox-buttons">
             <button data-intent="ask_downlink_user">Downlink User</button>
             <button data-intent="show_low_prb_utilization">PRB Utilization</button>
+            <button data-intent="run_buffer_process">Run Buffer</button>
         </div>
     </div>
     <div class="chatbox-footer">
@@ -280,64 +310,72 @@
           });
       }
 
-      function sendMessageToRasa(message) {
-    // Function to check if the input is a valid CELL_ID (alphanumeric)
+    function sendMessageToRasa(message) {
     function isValidCellID(input) {
-        return /^[a-zA-Z0-9]+$/.test(input); // Matches alphanumeric strings
+        return /^[a-zA-Z0-9]+$/.test(input); // Matches alphanumeric only
     }
 
-    // Append user message to chat
+    function isValidTicketID(input) {
+        return /^[a-f0-9]{4}-[a-f0-9]{4}$/i.test(input) || /^[a-f0-9\-]{19,}$/.test(input);
+    }
+
     const userMessage = document.createElement("p");
     userMessage.classList.add("user");
     userMessage.textContent = message;
     chatBody.appendChild(userMessage);
     chatBody.scrollTop = chatBody.scrollHeight;
 
-    // Check if the message is an explicit "fly to site" command (e.g., "fly to site 1023C")
-    if (message.toLowerCase().startsWith("fly to site ")) {
-        const CELL_ID = message.substring("fly to site ".length).trim();
-        if (CELL_ID && isValidCellID(CELL_ID)) {
-            console.log(`📍 Recognized Cell ID for Fly-to-Site: ${CELL_ID}`);
+    function openBufferModal() {
+  const modal = document.getElementById('bufferModal');
+  const frame = document.getElementById('bufferFrame');
+  frame.src = "http://172.20.10.2:5000"; // Flask app
+  modal.style.display = "block";
+}
 
-            // Fly to the location on the map (if the function exists)
-            if (typeof window.flyToSiteID === "function") {
-                window.flyToSiteID(CELL_ID);
-            } else {
-                console.error("❌ flyToSiteID function is not available.");
-            }
+
+    if (message.toLowerCase().includes("buffer")) {
+    console.log("📦 Buffer process triggered via chatbot.");
+
+    // Open the buffer modal
+    openBufferModal(); // This already exists in your HTML
+}
+
+
+    // 🆕 Check if it's a Ticket ID
+    if (isValidTicketID(message)) {
+        const TICKET_ID = message.trim();
+        console.log(`🎟️ Recognized Ticket ID: ${TICKET_ID}`);
+        if (typeof window.flyToTicketLocation === "function") {
+            window.flyToTicketLocation(TICKET_ID);
+        } else {
+            console.error("❌ flyToTicketLocation function is not available.");
         }
     }
-    // Default behavior for CELL_ID (e.g., "1023C")
+    // ✅ Check if it's a Site ID (CELL_ID)
     else if (isValidCellID(message)) {
-        const CELL_ID = message.trim(); // Use the entire message as the CELL_ID
+        const CELL_ID = message.trim();
         console.log(`📍 Recognized Cell ID: ${CELL_ID}`);
-
-        // Fly to the location on the map (if the function exists)
         if (typeof window.flyToSiteID === "function") {
             window.flyToSiteID(CELL_ID);
         } else {
             console.error("❌ flyToSiteID function is not available.");
         }
 
-        // Open the Grafana dashboard for the CELL_ID in a new tab
-        const grafanaUrl = `http://localhost:3000/d/aefhk408ovk74e/cell-id-dashboard?orgId=1&var-cell_id=${encodeURIComponent(CELL_ID)}`;
-        const newTab = window.open(grafanaUrl, '_blank'); // Opens in a new tab
-
-        // Check if the new tab was blocked
+        const grafanaUrl = `https://693a-2001-d08-ea-1dab-b051-1b16-2d8c-cc69.ngrok-free.app/d/aefhk408ovk74e/cell-id-dashboard?orgId=1&var-cell_id=${encodeURIComponent(CELL_ID)}`;
+        const newTab = window.open(grafanaUrl, '_blank');
         if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
-            alert("Popup blocked! Please allow popups for this site to open the Grafana dashboard.");
+            alert("Popup blocked! Please allow popups for this site.");
         }
     }
 
-    // Always send the message to Rasa
+    // Always send to Rasa server
     fetch(rasaServerUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: message })  // ✅ Ensures message always goes to Rasa
+        body: JSON.stringify({ message: message })
     })
     .then(response => response.json())
     .then(data => {
-        // Append bot response to chat
         data.forEach(response => {
             const botMessage = document.createElement("p");
             botMessage.classList.add("bot");
@@ -355,6 +393,7 @@
     });
 }
 
+
       sendButton.addEventListener("click", function () {
           const message = chatInput.value.trim();
           if (message !== "") {
@@ -369,6 +408,7 @@
               <div class="chatbox-buttons">
                   <button data-intent="ask_downlink_user">Downlink User</button>
                   <button data-intent="show_low_prb_utilization">PRB Utilization</button>
+                  <button data-intent="run_buffer_process">Run Buffer</button>
               </div>
           `;
           chatInput.value = ""; // Clears the input field
@@ -395,3 +435,5 @@
   
 </body>
 </html>
+
+ 

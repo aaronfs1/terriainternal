@@ -2,12 +2,15 @@
 
 console.log("✅ load3DModels.js script is running...");
 
-// Use your *actual* Cesium Ion token here:
-Cesium.Ion.defaultAccessToken =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhZjZjMDliMC04MDQ3LTRhMWQtYmI4ZC1hOTQ2NzJmYTUyYzUiLCJpZCI6MjQ3MDE2LCJpYXQiOjE3Mzk0Mjk0NjB9.d7CmmzSJzF4xYG24dvZ76GjJVQL-0DiTihjq4bzdYxY";
+// Tokens
+const siteGeoJsonAssetId = 3121093;
+const siteAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhZjZjMDliMC04MDQ3LTRhMWQtYmI4ZC1hOTQ2NzJmYTUyYzUiLCJpZCI6MjQ3MDE2LCJpYXQiOjE3Mzk0Mjk0NjB9.d7CmmzSJzF4xYG24dvZ76GjJVQL-0DiTihjq4bzdYxY";
 
-const customgeoJsonAssetId = 3121093;
-const baseModelAssetId = 3124907;
+const ticketGeoJsonAssetId = 3330579;
+const ticketAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4MGYxODE5YS1mYTA4LTRmMTQtODNjMC0xMDc0ODNmODRmYzMiLCJpZCI6Mjk0MTA5LCJpYXQiOjE3NDU3MzkwNzN9.UNRFdlSDd4YDBCeEHkN_o1NQD7thLHPgPc97eYEa4-8";
+
+const siteIdAssetId = 3374925;
+const siteIdAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxYTQzMGJmNS03N2VjLTQ2MWMtOGVjZC1lZTdhNzdjMTAzNTkiLCJpZCI6Mjk0MTA5LCJpYXQiOjE3NDcxNDYzOTl9.ayGRfH5quHXV33UToFnG87aq2CJs6x5T7fCc-UniOMU";
 
 let firstAntennaPosition = null;
 const processedSiteIds = new Set();
@@ -18,169 +21,163 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (window.terria && window.terria.currentViewer?.scene?.primitives) {
       clearInterval(waitForTerria);
       console.log("✅ TerriaMap instance is ready:", window.terria);
-      loadGeoJSONAndPlaceModels(window.terria);
-    } else {
-      console.warn(
-        "⏳ Waiting for TerriaMap... terria or scene primitives not ready."
-      );
+      await loadSiteGeoJSON(window.terria);
+      await loadTicketGeoJSON();
+      await loadSiteIdGeoJSON(); // ✅ Ensure new dataset is loaded too
     }
   }, 500);
 });
 
-async function loadGeoJSONAndPlaceModels(terria) {
-  console.log("📡 Fetching GeoJSON and adding base models...");
+// Load New Site ID GeoJSON
+async function loadSiteIdGeoJSON() {
+  console.log("📡 Fetching SiteID GeoJSON...");
   try {
-    window.geoJsonData = await Cesium.IonResource.fromAssetId(
-      customgeoJsonAssetId
-    ).then((res) => res.fetchJson());
-    console.log("✅ GeoJSON Data is globally accessible:", window.geoJsonData);
+    Cesium.Ion.defaultAccessToken = siteIdAccessToken;
+    window.siteIdGeoJsonData = await Cesium.IonResource.fromAssetId(siteIdAssetId).then(res => res.fetchJson());
+    console.log("✅ SiteID GeoJSON loaded.");
+  } catch (error) {
+    console.error("❌ Error loading SiteID GeoJSON:", error);
+  }
+}
 
-    console.log("✅ GeoJSON Data Loaded:", geoJsonData);
+// Load Site GeoJSON (legacy Cell ID dataset)
+async function loadSiteGeoJSON(terria) {
+  console.log("📡 Fetching Site GeoJSON...");
+  try {
+    Cesium.Ion.defaultAccessToken = siteAccessToken;
+    window.siteGeoJsonData = await Cesium.IonResource.fromAssetId(siteGeoJsonAssetId).then(res => res.fetchJson());
+    console.log("✅ Site GeoJSON loaded.");
 
     if (!terria.currentViewer?.scene?.primitives) {
-      console.error(
-        "❌ Terria's scene primitives is not available. Cannot proceed."
-      );
+      console.error("❌ Scene primitives unavailable.");
       return;
     }
 
-    console.log("🛠️ terria.currentViewer.scene.primitives is available.");
-
-    // ✅ Make flyToSiteID globally accessible
-    window.flyToSiteID = function (siteID) {
-      console.log(`🚀 flyToSiteID triggered for: ${siteID}`);
-
-      if (!window.geoJsonData) {
-        console.error("❌ GeoJSON data is not loaded yet.");
-        return;
-      }
-
-      console.log("🔍 Searching for site in GeoJSON...");
-      const siteFeature = window.geoJsonData.features.find(
-        (feature) =>
-          feature.properties["siteid"].toString().toUpperCase() ===
-          siteID.toUpperCase()
-      );
-
-      if (!siteFeature) {
-        console.warn(`⚠️ Site ID ${siteID} not found in GeoJSON.`);
-        return;
-      }
-
-      const [longitude, latitude] = siteFeature.geometry.coordinates;
-      console.log(`📍 Site Found! Lat: ${latitude}, Lon: ${longitude}`);
-
-      if (
-        !window.terria ||
-        !window.terria.currentViewer ||
-        !window.terria.currentViewer.scene
-      ) {
-        console.error("❌ Cesium scene is not ready.");
-        return;
-      }
-
-      console.log("🎥 Flying camera to site...");
-      window.terria.currentViewer.scene.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 1000), // Adjust altitude for better top-down view
-        duration: 2,
-        orientation: {
-          heading: Cesium.Math.toRadians(0),
-          pitch: Cesium.Math.toRadians(-90), // Looking straight down
-          roll: 0
-        }
-      });
-      console.log("✅ Camera movement triggered!");
-    };
-
-    for (const feature of geoJsonData.features) {
+    for (const feature of siteGeoJsonData.features) {
       const { geometry, properties } = feature;
       const [longitude, latitude] = geometry.coordinates;
       const siteId = properties["siteid"];
-
-      if (processedSiteIds.has(siteId)) {
-        console.log(`⚠️ Site ID ${siteId} already processed. Skipping...`);
-        continue;
-      }
+      if (processedSiteIds.has(siteId)) continue;
       processedSiteIds.add(siteId);
 
       const terrainHeight = await getTerrainHeight(longitude, latitude);
-
-      console.log(
-        `📍 Antenna Added | Site ID: ${siteId} | Lat: ${latitude}, Lon: ${longitude} | Terrain Height: ${terrainHeight}m`
-      );
-
-      // ✅ Place the model **directly at** terrain height (no extra offsets)
-      const position = Cesium.Cartesian3.fromDegrees(
-        longitude,
-        latitude,
-        terrainHeight
-      );
+      const position = Cesium.Cartesian3.fromDegrees(longitude, latitude, terrainHeight);
       const modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(position);
 
-      if (!firstAntennaPosition) {
-        firstAntennaPosition = { longitude, latitude, height: terrainHeight };
-      }
-
       try {
-        const modelResource = await Cesium.IonResource.fromAssetId(
-          baseModelAssetId
-        );
-        console.log("🔍 Model Resource Validated:", modelResource);
-
-        const modelEntity = Cesium.Model.fromGltf({
-          url: modelResource,
-          modelMatrix: modelMatrix,
-          scale: 1 // No scaling needed
-        });
-
+        const modelResource = await Cesium.IonResource.fromAssetId(3124907);
+        const modelEntity = Cesium.Model.fromGltf({ url: modelResource, modelMatrix, scale: 1 });
         terria.currentViewer.scene.primitives.add(modelEntity);
-        console.log("✅ Model added successfully");
       } catch (error) {
-        console.error("❌ Failed to load model:", error);
+        console.error("❌ Model load failed:", error);
       }
     }
 
-    console.log("✅ Base models successfully added.");
     if (firstAntennaPosition) {
       flyToFirstAntenna(terria, firstAntennaPosition);
     }
   } catch (error) {
-    console.error("❌ Error adding base models:", error);
+    console.error("❌ Error loading Site GeoJSON:", error);
   }
 }
 
-// ✅ FIX: Get Terrain Height Using Cesium Terrain Provider ONLY (No Offsets)
-async function getTerrainHeight(longitude, latitude) {
-  const scene = window.terria?.currentViewer?.scene;
-  if (!scene) {
-    console.error("❌ Scene is not available.");
-    return 0; // No fallback height, ensure it's on ground level
+// Load Ticket GeoJSON
+async function loadTicketGeoJSON() {
+  console.log("📡 Fetching Ticket GeoJSON...");
+  try {
+    Cesium.Ion.defaultAccessToken = ticketAccessToken;
+    window.ticketGeoJsonData = await Cesium.IonResource.fromAssetId(ticketGeoJsonAssetId).then(res => res.fetchJson());
+    console.log("✅ Ticket GeoJSON loaded.");
+  } catch (error) {
+    console.error("❌ Error loading Ticket GeoJSON:", error);
+  }
+}
+
+// ✅ Unified Fly to Site ID (New + Legacy datasets)
+window.flyToSiteID = function (siteID) {
+  console.log(`🚀 flyToSiteID triggered for: ${siteID}`);
+
+  let dataset = null;
+
+  // Check new Site ID dataset
+  if (window.siteIdGeoJsonData) {
+    dataset = window.siteIdGeoJsonData.features.find(
+      feature => feature.properties["siteid"]?.toString().toUpperCase() === siteID.toUpperCase()
+    );
   }
 
+  // Fallback to legacy dataset
+  if (!dataset && window.siteGeoJsonData) {
+    dataset = window.siteGeoJsonData.features.find(
+      feature => feature.properties["siteid"]?.toString().toUpperCase() === siteID.toUpperCase()
+    );
+  }
+
+  if (!dataset) {
+    console.warn(`⚠️ Site ID ${siteID} not found in any dataset.`);
+    return;
+  }
+
+  const [longitude, latitude] = dataset.geometry.coordinates;
+  flyCameraTo(longitude, latitude);
+};
+
+// ✅ Fly to Ticket ID (already working)
+window.flyToTicketLocation = function (ticketID) {
+  console.log(`🚀 flyToTicketLocation triggered for: ${ticketID}`);
+
+  if (!window.ticketGeoJsonData) {
+    console.error("❌ Ticket GeoJSON not loaded.");
+    return;
+  }
+
+  const ticketFeature = window.ticketGeoJsonData.features.find(
+    feature => feature.properties["Ticket ID"]?.toString().toLowerCase() === ticketID.toLowerCase()
+  );
+
+  if (!ticketFeature) {
+    console.warn(`⚠️ Ticket ID ${ticketID} not found.`);
+    return;
+  }
+
+  const [longitude, latitude] = ticketFeature.geometry.coordinates;
+  flyCameraTo(longitude, latitude);
+};
+
+// Universal Fly-to Camera
+function flyCameraTo(longitude, latitude) {
+  if (!window.terria?.currentViewer?.scene) {
+    console.error("❌ Cesium scene not ready.");
+    return;
+  }
+
+  window.terria.currentViewer.scene.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 1000),
+    duration: 2,
+    orientation: { heading: 0, pitch: -1.5, roll: 0 }
+  });
+
+  console.log("✅ Camera movement triggered!");
+}
+
+// Terrain Height Utility
+async function getTerrainHeight(longitude, latitude) {
+  const scene = window.terria?.currentViewer?.scene;
+  if (!scene) return 0;
   const terrainProvider = scene.terrainProvider;
   const positions = [Cesium.Cartographic.fromDegrees(longitude, latitude)];
-
   try {
-    const heights = await Cesium.sampleTerrainMostDetailed(
-      terrainProvider,
-      positions
-    );
-    return heights[0]?.height || 0; // No artificial offset
-  } catch (error) {
-    console.warn(
-      "⚠️ Failed to sample terrain. Setting antenna exactly on ground."
-    );
+    const heights = await Cesium.sampleTerrainMostDetailed(terrainProvider, positions);
+    return heights[0]?.height || 0;
+  } catch {
     return 0;
   }
 }
 
+// Fly to First Antenna Location
 function flyToFirstAntenna(terria, position) {
   terria.currentViewer.scene.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(
-      position.longitude,
-      position.latitude,
-      Math.max(position.height + 50, 100)
-    ),
+    destination: Cesium.Cartesian3.fromDegrees(position.longitude, position.latitude, Math.max(position.height + 50, 100)),
     duration: 3,
     orientation: { heading: 0, pitch: -0.5, roll: 0 }
   });

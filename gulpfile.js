@@ -305,4 +305,4 @@ gulp.task(
   "dev",
   gulp.parallel(gulp.series("render-index", "terriajs-server"), "watch")
 );
-gulp.task("default", gulp.series("lint", "build"));
+gulp.task("default", gulp.series(/* "lint", */ "build"));

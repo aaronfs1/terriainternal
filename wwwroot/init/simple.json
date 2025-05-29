@@ -669,6 +669,236 @@
       "style": "default",
       "opacity": 1
     },
+    
+    {
+      "id": "networkComplaintKepong",
+      "name": "Network Complaint Kepong",
+      "type": "geojson",
+      "url": "data/networkcomplaintkp.geojson",
+     "isEnabled": true,
+     "zoomOnLoad": true
+    },
+    {
+      "id": "KepongCombined",
+      "name": "30 Site Kepong (Merged)",
+      "type": "geojson",
+     "url": "data/30_Site_Kepong_AllMerged.geojson",
+     "isEnabled": true,
+     "zoomOnLoad": true
+    },
+    {
+      "id": "ooklaFLY",
+      "name": "ookla_fly",
+      "type": "geojson",
+     "url": "data/ookla_kepongFLY.geojson",
+     "isEnabled": true,
+     "zoomOnLoad": true
+    },
+    {
+  "id": "novaGeojsonGroup",
+  "name": "NOVA GeoJSON Files",
+  "type": "group",
+  "members": [
+    {
+      "id": "candidateGeo",
+      "name": "Candidate",
+      "type": "geojson",
+      "url": "data/FINAL/FINAL/Candidate.geojson",
+      "isEnabled": true,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "delaunayGeo",
+      "name": "Delaunay Triangulation",
+      "type": "geojson",
+      "url": "data/FINAL/FINAL/Delaunay triangulation.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "nominalPointGeo",
+      "name": "Nominal Point",
+      "type": "geojson",
+      "url": "data/FINAL/FINAL/Nominal Point.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "npBuildingGeo",
+      "name": "NP Building",
+      "type": "geojson",
+      "url": "data/FINAL/FINAL/NP building.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "weightageGeo",
+      "name": "Weightage",
+      "type": "geojson",
+      "url": "data/FINAL/FINAL/Weightage.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "buildingLonglatGeo",
+      "name": "Building Longlat",
+      "type": "geojson",
+      "url": "data/FINAL/FINAL/building longlat.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    }
+  ]
+},
+{
+  "id": "linesGeojsonGroup",
+  "name": "Lines GeoJSON Files",
+  "type": "group",
+  "members": [
+    {
+      "id": "centroidHouse",
+      "name": "Centroid House",
+      "type": "geojson",
+      "url": "data/LINES/LINES/Centroid House.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "distanceAB",
+      "name": "Distance AB",
+      "type": "geojson",
+      "url": "data/LINES/LINES/Distance AB.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "distanceBC",
+      "name": "Distance BC",
+      "type": "geojson",
+      "url": "data/LINES/LINES/Distance BC.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "distanceCD",
+      "name": "Distance CD",
+      "type": "geojson",
+      "url": "data/LINES/LINES/Distance CD.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "dropPoint",
+      "name": "Drop Point",
+      "type": "geojson",
+      "url": "data/LINES/LINES/Drop point.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "name": "Buffer Model (Database - Auto)",
+      "type": "group",
+      "members": [
+        {
+          "name": "Kepong Site (Input Points)",
+          "type": "geojson",
+          "url": "http://172.20.10.2:9090/kepong_site_geojson",
+          "dataCustodian": "Py-QGIS-WPS",
+          "description": "Input points for buffer generation."
+        },
+        {
+          "name": "Generated Buffer (Database)",
+          "type": "geojson",
+          "url": "http://172.20.10.2:9090/buffer_output_geojson",
+          "dataCustodian": "Py-QGIS-WPS",
+          "description": "Generated buffer output fetched directly from the database."
+        }
+      ]
+    },
+        {
+      "name": "Buffer Model (QGIS WPS)",
+      "type": "wps",
+      "url": "http://172.20.10.2:8080/ows/?",
+      "identifier": "script:buffer_test",
+      "inputs": {
+        "user_input": {
+          "type": "string",
+          "value": "/home/aaron/kepong/30_site_Kepong.shp"
+        }
+      },
+      "outputSelector": "User_buffer",
+      "outputType": "complex",
+      "loadOnAddToMap": true,
+        "linkedWms": {
+          "type": "geojson",
+          "url": "http://172.20.10.2:9090/kepong/output_buffer1.shp",
+          "name": "Generated Buffer"
+        }
+    },            
+    {
+      "id": "endPointAB",
+      "name": "End Point AB",
+      "type": "geojson",
+      "url": "data/LINES/LINES/End Point AB.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "linesEndpoint",
+      "name": "LINES Endpoint",
+      "type": "geojson",
+      "url": "data/LINES/LINES/LINES endpoint.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "totalLengthLines",
+      "name": "Total Length Lines",
+      "type": "geojson",
+      "url": "data/LINES/LINES/Total Length LINES.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    }
+  ]
+},
+{
+  "id": "wedge_1GeojsonGroup",
+  "name": "Wedge_1 GeoJSON Files",
+  "type": "group",
+  "members": [
+    {
+      "id": "wedgeL900",
+      "name": "Wedge L900",
+      "type": "geojson",
+      "url": "data/wedge_1/wedge_L900.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "wedgeL1800",
+      "name": "Wedge L1800",
+      "type": "geojson",
+      "url": "data/wedge_1/wedge_L1800.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "wedgeL2100",
+      "name": "Wedge L2100",
+      "type": "geojson",
+      "url": "data/wedge_1/wedge_L2100.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "wedgeL2600",
+      "name": "Wedge L2600",
+      "type": "geojson",
+      "url": "data/wedge_1/wedge_L2600.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    }
+  ]
+},
     {
       "id": "B8gpm2I3gB",
       "name": "Sentinel-2 cloudless world 2020",
