@@ -36,6 +36,46 @@
       .TerriaLogo___StyledImg-sc-bk2yek-0 {
     display: none !important;
 }
+.guidelines-button {
+    position: fixed;
+    bottom: 20px;
+    right: 90px; /* Shift left from Chat avatar */
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    border-radius: 50%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    position: fixed;
+}
+
+.guidelines-button:hover .guidelines-tooltip {
+    display: block;
+}
+
+.guidelines-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 5px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    z-index: 1001;
+}
+
+.guidelines-tooltip img {
+    max-width: 500px;
+    max-height: 700px;
+    border-radius: 10px;
+}
+
 
 .chatbox-avatar {
     display: flex;
@@ -226,6 +266,7 @@
     <script src="https://cdn.jsdelivr.net/npm/mobx@6.9.0/dist/mobx.umd.production.min.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script> -->
 
+
     <div class="info-button-wrapper">
       <button class="tjs__buttons__btn--info" onclick="openGrafanaDashboard()">
         <img src="https://cdn-icons-png.flaticon.com/512/2041/2041637.png" alt="Data Icon" class="icon" />
@@ -250,7 +291,7 @@
       function openBufferModal() {
         const modal = document.getElementById('bufferModal');
         const frame = document.getElementById('bufferFrame');
-        frame.src = "http://172.20.10.2:5000";
+        frame.src = "https://institute-seniors-priced-advisory.trycloudflare.com";
         modal.style.display = "block";
       }
     
@@ -261,6 +302,17 @@
         modal.style.display = "none";
       }
     </script>
+
+<script>
+  async function openGrafanaDashboard() {
+    // Use the Ngrok URL you get when running Ngrok
+    const ngrokUrl = "https://invalid-un-composed-faster.trycloudflare.com"; // Replace with your actual Ngrok URL
+    const dashboardPath = "/d/aefhk408ovk74e/cell-id-dashboard";
+
+    window.open(`${ngrokUrl}${dashboardPath}`, "_blank");
+  }
+</script>
+
     <!-- Floating Avatar Button -->
 <div class="floating-button" id="floatingButton">
     <img src="avatar.png" alt="Avatar" class="avatar">
@@ -275,13 +327,23 @@
       Chat with Ad
       <button id="refreshChat" style="float: right; background: none; border: none; color: white; font-size: 16px; cursor: pointer;">⟳</button>
   </div>
-  
+  <!-- Guidelines Hover Button -->
+<div class="guidelines-button" id="guidelinesButton">
+  <img src="guide-icon.png" alt="Guidelines" class="avatar">
+  <div class="guidelines-tooltip">
+    <img src="guideline-preview.png" alt="Guideline Preview" />
+  </div>
+</div>
+
     <div class="chatbox-body">
         <p>Welcome! How can I help you today?</p>
         <div class="chatbox-buttons">
-            <button data-intent="ask_downlink_user">Downlink User</button>
-            <button data-intent="show_low_prb_utilization">PRB Utilization</button>
-            <button data-intent="run_buffer_process">Run Buffer</button>
+            <!-- <button data-intent="ask_downlink_user">Downlink User</button>
+            <button data-intent="show_low_prb_utilization">PRB Utilization</button> -->
+            <!-- <button data-intent="run_buffer_process">Run Buffer</button> -->
+             <button data-intent="run_wedge_layers">Wedges</button>
+            <button data-intent="run_nova_layers">Run NOVA</button>
+             <button data-intent="run_atom_layers">Run ATOM</button> <!-- ✅ New Button -->
         </div>
     </div>
     <div class="chatbox-footer">
@@ -299,38 +361,86 @@
       const chatInput = document.getElementById("chatInput");
       const sendButton = document.getElementById("sendButton");
 
-      const rasaServerUrl = "http://localhost:5005/webhooks/rest/webhook"; // Update with your RASA server URL
+      const rasaServerUrl = "https://accordance-parts-groundwater-ignore.trycloudflare.com/webhooks/rest/webhook"; // Update with your RASA server URL
 
-      function initializeButtons() {
-          document.querySelectorAll(".chatbox-buttons button").forEach(button => {
-              button.addEventListener("click", function () {
-                  const intent = this.getAttribute("data-intent");
-                  sendMessageToRasa(intent);
-              });
-          });
+function initializeButtons() {
+  document.querySelectorAll(".chatbox-buttons button").forEach((button) => {
+    button.addEventListener("click", function () {
+      const intent = this.getAttribute("data-intent");
+
+      // 🔒 RESERVED buttons: Don't send to Rasa
+      if (intent === "run_nova_layers") {
+        runNOVA();
+        return;
       }
+      if (intent === "run_atom_layers") {
+        runATOM();
+        return;
+      }
+      if (intent === "run_wedge_layers") {
+        runWedges();
+        return;
+      }
+
+      // 🟢 Other buttons are sent normally
+      sendMessageToRasa(intent);
+    });
+  });
+}
+
+
 
     function sendMessageToRasa(message) {
     function isValidCellID(input) {
         return /^[a-zA-Z0-9]+$/.test(input); // Matches alphanumeric only
     }
 
-    function isValidTicketID(input) {
-        return /^[a-f0-9]{4}-[a-f0-9]{4}$/i.test(input) || /^[a-f0-9\-]{19,}$/.test(input);
-    }
-
+    // Append user message to chat
     const userMessage = document.createElement("p");
     userMessage.classList.add("user");
     userMessage.textContent = message;
     chatBody.appendChild(userMessage);
     chatBody.scrollTop = chatBody.scrollHeight;
+document.getElementById("guidelinesButton").addEventListener("click", function () {
+    window.open("guideline-preview.png", "_blank");
+});
 
-    function openBufferModal() {
-  const modal = document.getElementById('bufferModal');
-  const frame = document.getElementById('bufferFrame');
-  frame.src = "http://172.20.10.2:5000"; // Flask app
-  modal.style.display = "block";
+// Check if the message is a CELL_ID prompt (e.g., "CELL_ID:1023C")
+if (message.toLowerCase().startsWith("cell_id:")) {
+    const CELL_ID = message.substring("cell_id:".length).trim();
+    console.log(`📍 Recognized Cell ID for Grafana: ${CELL_ID}`);
+    if (CELL_ID) {
+        // Fly to the location on the map (if the function exists)
+        if (typeof window.flyToSiteID === "function") {
+            window.flyToSiteID(CELL_ID);
+        } else {
+            console.error("❌ flyToSiteID function is not available.");
+        }
+
+        const grafanaUrl = `https://invalid-un-composed-faster.trycloudflare.com/d/aefhk408ovk74e/cell-id-dashboard?orgId=1&var-cell_id=${encodeURIComponent(CELL_ID)}`;
+        const newTab = window.open(grafanaUrl, '_blank'); // Opens in a new tab
+
+        // Check if the new tab was blocked
+        if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+            alert("Popup blocked! Please allow popups for this site to open the Grafana dashboard.");
+        }
+    }
 }
+function isValidTicketID(input) {
+    return (
+        /^[0-9]{5}-[0-9]{4}$/i.test(input) ||   // your format: 07489-1950
+        /^[a-z0-9]{4}-[a-z0-9]{4}$/i.test(input) || // 4-4 format
+        /^[a-z0-9\-]{19,}$/i.test(input)           // long UUID-style
+    );
+}
+
+
+//     function openBufferModal() {
+//   const modal = document.getElementById('bufferModal');
+//   const frame = document.getElementById('bufferFrame');
+//   frame.src = "https://172.20.10.2:5000"; // Flask app
+//   modal.style.display = "block";
+// }
 
 
     if (message.toLowerCase().includes("buffer")) {
@@ -339,18 +449,40 @@
     // Open the buffer modal
     openBufferModal(); // This already exists in your HTML
 }
+// 🆕 Check for "Run NOVA" intent
+if (message.toLowerCase().includes("nova")) {
+    console.log("🚀 Run NOVA triggered via chatbot.");
+    runNOVA();
+}
+if (message.toLowerCase().includes("atom")) {
+    console.log("⚛️ Run ATOM triggered via chatbot.");
+    runATOM();
+}
+if (message.toLowerCase().includes("wedge")) {
+    console.log("🔻 Run WEDGES triggered via chatbot.");
+    runWedges();
+}
+
 
 
     // 🆕 Check if it's a Ticket ID
     if (isValidTicketID(message)) {
-        const TICKET_ID = message.trim();
-        console.log(`🎟️ Recognized Ticket ID: ${TICKET_ID}`);
-        if (typeof window.flyToTicketLocation === "function") {
-            window.flyToTicketLocation(TICKET_ID);
-        } else {
-            console.error("❌ flyToTicketLocation function is not available.");
-        }
+    const TICKET_ID = message.trim();
+    console.log(`🎟️ Recognized Ticket ID: ${TICKET_ID}`);
+
+    // ✅ First try your new dataset
+    if (typeof window.flyToNetworkComplain2 === "function") {
+        window.flyToNetworkComplain2(TICKET_ID);
     }
+
+    // ✅ Then fallback to old one
+    else if (typeof window.flyToTicketLocation === "function") {
+        window.flyToTicketLocation(TICKET_ID);
+    } else {
+        console.error("❌ No fly-to function available for Ticket ID.");
+    }
+}
+
     // ✅ Check if it's a Site ID (CELL_ID)
     else if (isValidCellID(message)) {
         const CELL_ID = message.trim();
@@ -360,12 +492,12 @@
         } else {
             console.error("❌ flyToSiteID function is not available.");
         }
+const grafanaUrl = `https://invalid-un-composed-faster.trycloudflare.com/d/aefhk408ovk74e/cell-id-dashboard?orgId=1&var-cell_id=${encodeURIComponent(CELL_ID)}`;
+const newTab = window.open(grafanaUrl, '_blank');
+if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+    alert("Popup blocked! Please allow popups for this site.");
+}
 
-        const grafanaUrl = `https://693a-2001-d08-ea-1dab-b051-1b16-2d8c-cc69.ngrok-free.app/d/aefhk408ovk74e/cell-id-dashboard?orgId=1&var-cell_id=${encodeURIComponent(CELL_ID)}`;
-        const newTab = window.open(grafanaUrl, '_blank');
-        if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
-            alert("Popup blocked! Please allow popups for this site.");
-        }
     }
 
     // Always send to Rasa server
@@ -392,6 +524,100 @@
         chatBody.appendChild(errorMessage);
     });
 }
+function runATOM() {
+    console.log("⚛️ Run ATOM button clicked");
+
+    const atomLayerIds = [
+        "ATOM Model (QGIS WPS)",
+        "ATOM DB SCAN CLUSTERS",
+        "ATOM Polygon",
+        "ATOM DB Cleaned",
+        "ATOM MR Grid",
+        "ATOM Population Clusters"
+    ];
+
+    const catalogModels = window.terria.catalog.group.memberModels;
+
+    atomLayerIds.forEach(layerName => {
+        const layerModel = findLayerByNameRecursive(catalogModels, layerName);
+
+        if (layerModel) {
+            window.terria.workbench.add(layerModel);
+            console.log(`✅ Enabled ATOM layer: ${layerName}`);
+        } else {
+            console.warn(`⚠️ ATOM layer not found: ${layerName}`);
+        }
+    });
+}
+function runWedges() {
+    console.log("🧭 Loading Wedge layers...");
+
+    const wedgeLayerIds = [
+        "Wedge L900",
+        "Wedge L1800",
+        "Wedge L2100",
+        "Wedge L2600"
+    ];
+
+    const catalogModels = window.terria.catalog.group.memberModels;
+
+    wedgeLayerIds.forEach(layerName => {
+        const layerModel = findLayerByNameRecursive(catalogModels, layerName);
+
+        if (layerModel) {
+            window.terria.workbench.add(layerModel);
+            console.log(`✅ Loaded: ${layerName}`);
+        } else {
+            console.warn(`⚠️ Not found: ${layerName}`);
+        }
+    });
+}
+
+function runNOVA() {
+    console.log("🚀 Run NOVA button clicked");
+
+    const novaLayerIds = [
+        "NOVA Result",
+        "NOVA NP Building",
+        "NOVA Nominal Point",
+        "Delaunay Triangulation",
+        "NOVA Building Tagged",
+        "NOVA Building longlat",
+        "NOVA Buffer",
+        "Network Complaint Kepong",
+        "30 Site Kepong (Merged)",
+        "NOVA Model (QGIS WPS)"
+    ];
+
+    // 🔍 Search from full catalog
+    const catalogModels = window.terria.catalog.group.memberModels;
+
+    novaLayerIds.forEach(layerName => {
+        const layerModel = findLayerByNameRecursive(catalogModels, layerName);
+
+        if (layerModel) {
+            window.terria.workbench.add(layerModel);
+            console.log(`✅ Enabled layer: ${layerName}`);
+        } else {
+            console.warn(`⚠️ Layer not found: ${layerName}`);
+        }
+    });
+}
+
+// 🔍 Recursive layer search
+function findLayerByNameRecursive(models, name) {
+    for (const item of models) {
+        if (item.name === name) {
+            return item;
+        }
+        if (item.memberModels && item.memberModels.length > 0) {
+            const found = findLayerByNameRecursive(item.memberModels, name);
+            if (found) return found;
+        }
+    }
+    return null;
+}
+
 
 
       sendButton.addEventListener("click", function () {
@@ -406,9 +632,13 @@
           chatBody.innerHTML = `
               <p>Welcome! How can I help you today?</p>
               <div class="chatbox-buttons">
-                  <button data-intent="ask_downlink_user">Downlink User</button>
-                  <button data-intent="show_low_prb_utilization">PRB Utilization</button>
-                  <button data-intent="run_buffer_process">Run Buffer</button>
+                  // <button data-intent="ask_downlink_user">Downlink User</button>
+                  // <button data-intent="show_low_prb_utilization">PRB Utilization</button>
+                  // <button data-intent="run_buffer_process">Run Buffer</button>
+                  <button data-intent="run_nova_layers">Run NOVA</button>
+                  <button data-intent="run_wedge_layers">Wedges</button>
+
+
               </div>
           `;
           chatInput.value = ""; // Clears the input field

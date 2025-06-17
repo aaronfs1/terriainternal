@@ -68,11 +68,14 @@ function addMessage(message, sender) {
 // Function to send a message to Rasa
 function sendMessageToRasa(messageData) {
   console.log("🔄 Preparing to send message to Rasa:", messageData);
-  fetch("http://localhost:5005/webhooks/rest/webhook", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(messageData)
-  })
+  fetch(
+    "https://researcher-charge-capture-equivalent.trycloudflare.com/webhooks/rest/webhook",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(messageData)
+    }
+  )
     .then((response) => {
       console.log("✅ Rasa responded:", response);
       return response.json();
