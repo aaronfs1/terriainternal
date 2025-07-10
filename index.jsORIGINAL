@@ -1,0 +1,260 @@
+"use strict";
+
+console.log("✅ index.js has loaded successfully!");
+
+var terriaOptions = {
+  baseUrl: "build/TerriaJS"
+};
+
+import { runInAction } from "mobx";
+import ConsoleAnalytics from "terriajs/lib/Core/ConsoleAnalytics";
+import GoogleAnalytics from "terriajs/lib/Core/GoogleAnalytics";
+import ShareDataService from "terriajs/lib/Models/ShareDataService";
+// import registerAnalytics from 'terriajs/lib/Models/registerAnalytics';
+import registerCustomComponentTypes from "terriajs/lib/ReactViews/Custom/registerCustomComponentTypes";
+import Terria from "terriajs/lib/Models/Terria";
+import updateApplicationOnHashChange from "terriajs/lib/ViewModels/updateApplicationOnHashChange";
+import updateApplicationOnMessageFromParentWindow from "terriajs/lib/ViewModels/updateApplicationOnMessageFromParentWindow";
+import ViewState from "terriajs/lib/ReactViewModels/ViewState";
+import render from "./lib/Views/render";
+import registerCatalogMembers from "terriajs/lib/Models/Catalog/registerCatalogMembers";
+import registerSearchProviders from "terriajs/lib/Models/SearchProviders/registerSearchProviders";
+import defined from "terriajs-cesium/Source/Core/defined";
+import loadPlugins from "./lib/Core/loadPlugins";
+import plugins from "./plugins";
+
+// Register all types of catalog members in the core TerriaJS.  If you only want to register a subset of them
+// (i.e. to reduce the size of your application if you don't actually use them all), feel free to copy a subset of
+// the code in the registerCatalogMembers function here instead.
+// registerCatalogMembers();
+// registerAnalytics();
+
+// we check exact match for development to reduce chances that production flag isn't set on builds(?)
+if (process.env.NODE_ENV === "development") {
+  terriaOptions.analytics = new ConsoleAnalytics();
+} else {
+  terriaOptions.analytics = new GoogleAnalytics();
+}
+
+// Construct the TerriaJS application, arrange to show errors to the user, and start it up.
+var terria = new Terria(terriaOptions);
+
+// Register custom components in the core TerriaJS.  If you only want to register a subset of them, or to add your own,
+// insert your custom version of the code in the registerCustomComponentTypes function here instead.
+registerCustomComponentTypes(terria);
+
+// Create the ViewState before terria.start so that errors have somewhere to go.
+const viewState = new ViewState({
+  terria: terria
+});
+
+registerCatalogMembers();
+// Register custom search providers in the core TerriaJS. If you only want to register a subset of them, or to add your own,
+// insert your custom version of the code in the registerSearchProviders function here instead.
+registerSearchProviders();
+
+if (process.env.NODE_ENV === "development") {
+  window.viewState = viewState;
+}
+
+// If we're running in dev mode, disable the built style sheet as we'll be using the webpack style loader.
+// Note that if the first stylesheet stops being nationalmap.css then this will have to change.
+if (process.env.NODE_ENV !== "production" && module.hot) {
+  document.styleSheets[0].disabled = true;
+}
+
+module.exports = terria
+  .start({
+    applicationUrl: window.location,
+    configUrl: "config.json",
+    shareDataService: new ShareDataService({
+      terria: terria
+    }),
+    beforeRestoreAppState: () => {
+      // Load plugins before restoring app state because app state may
+      // reference plugin components and catalog items.
+      return loadPlugins(viewState, plugins).catch((error) => {
+        console.error(`Error loading plugins`);
+        console.error(error);
+      });
+    }
+  })
+  .catch(function (e) {
+    terria.raiseErrorToUser(e);
+  })
+  .finally(function () {
+    // Override the default document title with appName. Check first for default
+    // title, because user might have already customized the title in
+    // index.ejs
+    if (document.title === "Terria Map") {
+      document.title = terria.appName;
+    }
+
+    terria.loadInitSources().then(() => {
+      console.log("✅ Terria data sources initialized:", terria.dataSources);
+      window.terria = terria; // Expose globally after ensuring initialization
+    }).catch(err => console.error("❌ Error loading init sources:", err));
+
+
+    // Expose the Terria instance and ViewState globally for external scripts
+    window.terria = terria;
+    console.log("Debugging Terria instance:", window.terria);
+    window.viewState = viewState;
+
+    console.log("✅ Terria instance and ViewState exposed globally.");
+
+    try {
+      // Automatically update Terria (load new catalogs, etc.) when the hash part of the URL changes.
+      updateApplicationOnHashChange(terria, window);
+      updateApplicationOnMessageFromParentWindow(terria, window);
+
+      // Show a modal disclaimer before user can do anything else.
+      if (defined(terria.configParameters.globalDisclaimer)) {
+        var globalDisclaimer = terria.configParameters.globalDisclaimer;
+        var hostname = window.location.hostname;
+        if (
+          globalDisclaimer.enableOnLocalhost ||
+          hostname.indexOf("localhost") === -1
+        ) {
+          var message = "";
+          // Sometimes we want to show a preamble if the user is viewing a site other than the official production instance.
+          // This can be expressed as a devHostRegex ("any site starting with staging.") or a negative prodHostRegex ("any site not ending in .gov.au")
+          if (
+            (defined(globalDisclaimer.devHostRegex) &&
+              hostname.match(globalDisclaimer.devHostRegex)) ||
+            (defined(globalDisclaimer.prodHostRegex) &&
+              !hostname.match(globalDisclaimer.prodHostRegex))
+          ) {
+            message += require("./lib/Views/DevelopmentDisclaimerPreamble.html");
+          }
+          message += require("./lib/Views/GlobalDisclaimer.html");
+
+          var options = {
+            title:
+              globalDisclaimer.title !== undefined
+                ? globalDisclaimer.title
+                : "Warning",
+            confirmText: globalDisclaimer.buttonTitle || "Ok",
+            denyText: globalDisclaimer.denyText || "Cancel",
+            denyAction: globalDisclaimer.afterDenyLocation
+              ? function () {
+                window.location = globalDisclaimer.afterDenyLocation;
+              }
+              : undefined,
+            width: 600,
+            height: 550,
+            message: message,
+            horizontalPadding: 100
+          };
+          runInAction(() => {
+            viewState.disclaimerSettings = options;
+            viewState.disclaimerVisible = true;
+          });
+        }
+      }
+
+      // Add font-imports
+      const fontImports = terria.configParameters.theme?.fontImports;
+      if (fontImports) {
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = fontImports;
+        document.head.appendChild(styleSheet);
+      }
+
+      render(terria, [], viewState);
+    } catch (e) {
+      console.error(e);
+      console.error(e.stack);
+    }
+  });
+
+document.addEventListener("DOMContentLoaded", function () {
+  const chatboxModal = document.getElementById("chatboxModal");
+  const chatInput = document.getElementById("chatInput");
+  const sendButton = document.getElementById("sendButton");
+  const chatBody = document.querySelector(".chatbox-body");
+  const floatingButton = document.getElementById("floatingButton");
+
+  console.log("🔍 Checking if chatbot elements exist:");
+  console.log("floatingButton:", floatingButton);
+  console.log("chatboxModal:", chatboxModal);
+
+  if (!floatingButton || !chatboxModal) {
+    console.error("❌ Chatbot elements are missing from the DOM!");
+    return;
+  }
+
+  // Toggle chatbox visibility
+  floatingButton.addEventListener("click", () => {
+    console.log("✅ Floating button clicked!");
+    chatboxModal.classList.toggle("show");
+});
+
+  // Rasa server URL
+  const rasaURL = "http://localhost:5005/webhooks/rest/webhook";
+
+  // Function to display messages in the chatbox
+  function addMessage(message, sender) {
+    const messageElement = document.createElement("p");
+    messageElement.className = sender; // "user" or "bot"
+    messageElement.textContent = message;
+    chatBody.appendChild(messageElement);
+    chatBody.scrollTop = chatBody.scrollHeight; // Scroll to the bottom
+  }
+
+  // Handle button clicks for predefined intents
+  document.querySelector(".chatbox-buttons").addEventListener("click", (event) => {
+    const button = event.target;
+    if (button.tagName === "BUTTON") {
+      const intent = button.dataset.intent;
+      if (intent) {
+        const messageData = {
+          sender: "user",
+          message: button.textContent,
+          metadata: { intent: intent }
+        };
+        addMessage(button.textContent, "user");
+        sendMessageToRasa(messageData);
+      }
+    }
+  });
+
+  // Function to send message to Rasa
+  function sendMessageToRasa(messageData) {
+    fetch(rasaURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(messageData)
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          data.forEach(response => {
+            addMessage(response.text, "bot");
+          });
+        }
+      })
+      .catch(error => {
+        console.error("Error sending message to Rasa:", error);
+        addMessage("Sorry, I encountered an error. Please try again.", "bot");
+      });
+  }
+
+  // Handle sending message via input box
+  sendButton.addEventListener("click", () => {
+    const userMessage = chatInput.value.trim();
+    if (userMessage) {
+      addMessage(userMessage, "user");
+      chatInput.value = "";
+      sendMessageToRasa({ sender: "user", message: userMessage });
+    }
+  });
+
+  // Handle Enter key press in input field
+  chatInput.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+      sendButton.click();
+    }
+  });
+});

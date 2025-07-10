@@ -1,0 +1,77 @@
+{
+  "initializationUrls": ["simple"],
+  "parameters": {
+    "cesiumIonAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhZjZjMDliMC04MDQ3LTRhMWQtYmI4ZC1hOTQ2NzJmYTUyYzUiLCJpZCI6MjQ3MDE2LCJpYXQiOjE3Mzk0Mjk0NjB9.d7CmmzSJzF4xYG24dvZ76GjJVQL-0DiTihjq4bzdYxY",
+    "googleUrlShortenerKey": null,
+    "googleAnalyticsKey": null,
+    "googleAnalyticsOptions": null,
+    "disclaimer": {
+      "text": "Disclaimer: This map must not be used for navigation or precise spatial analysis",
+      "url": ""
+    },
+    "appName": "Terria Map",
+    "brandBarElements": [
+      "",
+      "<a target=\"_blank\" href=\"https://terria.io\"><img src=\"images/terria_logo.png\" height=\"52\" title=\"Version: {{version}}\" /></a>",
+      ""
+    ],
+    "supportEmail": "help@example.com",
+    "proj4ServiceBaseUrl": "proj4def/",
+    "feedbackUrl": "feedback",
+    "mobileDefaultViewerMode": "3DTerrain",
+    "experimentalFeatures": true,
+    "searchBarConfig": {},
+    "searchProviders": [
+      {
+        "id": "search-provider/cesium-ion",
+        "type": "cesium-ion-search-provider",
+        "name": "translate#viewModels.searchLocations",
+        "flightDurationSeconds": 1.5,
+        "minCharacters": 3
+      }
+    ],
+    "parameters": {
+      "initialViewer": "cesium",
+      "disable3D": false,
+      "defaultTo2D": false
+    },
+    "helpContent": [
+      {
+        "title": "Getting started with the map",
+        "itemName": "gettingstarted",
+        "paneMode": "videoAndContent",
+        "markdownText": "Learn how to get started with Terria Map.",
+        "icon": "video",
+        "videoUrl": "https://www.youtube-nocookie.com/embed/NTtSM70rIvI",
+        "placeholderImage": "https://img.youtube.com/vi/NTtSM70rIvI/maxresdefault.jpg"
+      }
+    ],
+    "helpContentTerms": [
+      {
+        "term": "dataset",
+        "aliases": ["data set", "data sets", "datasets"],
+        "content": "A collection of related information, organised as one using a common data structure, e.g. 'average house prices in Sydney for 2019' or 'minimum and maximum daily temperature'."
+      },
+      {
+        "term": "time series",
+        "aliases": ["timeseries"],
+        "content": "A sequence of data collected over different points in time, e.g. temperature sensor data or a gallery of images of the same location."
+      },
+      {
+        "term": "workbench",
+        "content": "The panel on the left side of the screen that shows what datasets you have added to the map."
+      },
+      {
+        "term": "catalog",
+        "aliases": ["catalogue"],
+        "content": "The inventory of all datasets available to be added to the map."
+      },
+      {
+        "term": "base maps",
+        "aliases": ["basemap", "base map", "basemaps"],
+        "content": "Different map options for the blank base map, such as Bing imagery, roads, dark or light maps."
+      }
+    ]
+  },
+  "simple": []
+}
