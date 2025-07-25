@@ -1,4 +1,4 @@
-/* global Cesium tryyyyyyyyyyy*/
+/* global Cesium */
 
 console.log("✅ load3DModels.js script is running...");
 

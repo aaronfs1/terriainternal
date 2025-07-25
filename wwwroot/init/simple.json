@@ -1,9 +1,9 @@
 {
   "homeCamera": {
-    "north": -8,
-    "east": 158,
-    "south": -45,
-    "west": 109
+    "west": 101.6,
+    "south": 3.05,
+    "east": 101.8,
+    "north": 3.25
   },
   "catalog": [
     {
@@ -22,30 +22,64 @@
       "ionAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhZjZjMDliMC04MDQ3LTRhMWQtYmI4ZC1hOTQ2NzJmYTUyYzUiLCJpZCI6MjQ3MDE2LCJpYXQiOjE3Mzk0Mjk0NjB9.d7CmmzSJzF4xYG24dvZ76GjJVQL-0DiTihjq4bzdYxY",
       "ionServer": "https://api.cesium.com/"
     },
-    {
-      "id": "JANCOMPLAINT",
-      "name": "JANCOMPLAINT",
-      "type": "geojson",
-      "url": "data/networkcomplain2longlat.geojson",
-      "isEnabled": true,
-      "zoomOnLoad": true
-    },
-    {
-      "id": "KepongCombined",
-      "name": "30 Site Kepong",
-      "type": "geojson",
-      "url": "data/30_Site_Kepong_AllMerged.geojson",
-      "isEnabled": true,
-      "zoomOnLoad": true
-    },
-    {
-      "id": "ooklaFLY",
-      "name": "ookla_fly",
-      "type": "geojson",
-      "url": "data/ookla_kepongFLY.geojson",
-      "isEnabled": true,
-      "zoomOnLoad": true
-    },
+{
+  "id": "KEDAH_PENANG_SITE",
+  "name": "Kedah & Penang Site",
+  "type": "geojson",
+  "url": "datas/kedahpenangsite.geojson",
+  "isEnabled": true,
+  "zoomOnLoad": true
+}
+,
+{
+  "id": "JANMARCHKEDAHPNGCOMPLAINT",
+  "name": "JANMARCHKEDAHPNGCOMPLAINT",
+  "type": "geojson",
+  "url": "datas/janmarchkedahpenangcomplaint.geojson",
+  "isEnabled": true,
+  "zoomOnLoad": true
+},
+{
+  "id": "amenityuniversitypenang",
+  "name": "amenityuniversitypenang",
+  "type": "geojson",
+  "url": "datas/amenity_university_penang.geojson",
+  "isEnabled": true,
+  "zoomOnLoad": true
+},
+{
+  "id": "highwayprimarypenang",
+  "name": "highwayprimarypenang",
+  "type": "geojson",
+  "url": "datas/highway_primary_penang.json",
+  "isEnabled": true,
+  "zoomOnLoad": true
+},
+{
+  "id": "officegovernmentpenang",
+  "name": "officegovernmentpenang",
+  "type": "geojson",
+  "url": "datas/office_government_penang.json",
+  "isEnabled": true,
+  "zoomOnLoad": true
+},
+{
+  "id": "schoolpenang",
+  "name": "schoolpenang",
+  "type": "geojson",
+  "url": "datas/school_penang.json",
+  "isEnabled": true,
+  "zoomOnLoad": true
+},
+{
+  "id": "healthcarehostpitalpenang",
+  "name": "healthcarehostpitalpenang",
+  "type": "geojson",
+  "url": "datas/healthcare_hostpital_penang.json",
+  "isEnabled": true,
+  "zoomOnLoad": true
+},
+
     {
       "name": "NOVA Analysis",
       "type": "group",
@@ -53,86 +87,29 @@
         {
           "name": "NOVA Model (QGIS WPS)",
           "type": "wps",
-          "url": "https://huge-zus-efficiently-rays.trycloudflare.com/ows/?",
+          "url": "http://192.168.1.10:8080/ows/?",
           "identifier": "script:nova",
           "executeMessage": "Running NOVA model..."
         },
         {
-          "name": "NOVA Buffer",
-          "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/nova_buffers_geojson",
-          "style": {
-            "stroke": "#FF00FF",
-            "strokeWidth": 1.5,
-            "fill": "rgba(255, 0, 255, 0.1)"
-          },
-          "zoomOnLoad": true
-        },
-        {
-          "name": "NOVA Building longlat",
-          "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/nova_building_longlat_geojson",
-          "style": {
-            "stroke": "#FF00FF",
-            "strokeWidth": 1.5,
-            "fill": "rgba(255, 0, 255, 0.1)"
-          },
-          "zoomOnLoad": true
-        },
-        {
-          "name": "NOVA Building Tagged",
-          "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/nova_building_tagged_geojson",
-          "style": {
-            "stroke": "#FF00FF",
-            "strokeWidth": 1.5,
-            "fill": "rgba(255, 0, 255, 0.1)"
-          },
-          "zoomOnLoad": true
-        },
-        {
-          "name": "Delaunay Triangulation",
-          "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/nova_delaunay_geojson",
-          "style": {
-            "stroke": "#FF00FF",
-            "strokeWidth": 1.5,
-            "fill": "rgba(255, 0, 255, 0.1)"
-          },
-          "zoomOnLoad": true
-        },
-        {
           "name": "NOVA Nominal Point",
           "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/nova_nominal_point_geojson",
-          "style": {
-            "stroke": "#FF00FF",
-            "strokeWidth": 1.5,
-            "fill": "rgba(255, 0, 255, 0.1)"
-          },
-          "zoomOnLoad": true
+          "url": "http://172.20.10.2:5000/nova_nominal_point_geojson"
         },
         {
-          "name": "NOVA NP Building",
+          "name": "NOVA Buffer",
           "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/nova_np_building_geojson",
-          "style": {
-            "stroke": "#FF00FF",
-            "strokeWidth": 1.5,
-            "fill": "rgba(255, 0, 255, 0.1)"
-          },
-          "zoomOnLoad": true
+          "url": "http://172.20.10.2:5000/nova_buffers_geojson"
         },
         {
           "name": "NOVA Result",
           "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/nova_result_geojson",
-          "style": {
-            "stroke": "#FF00FF",
-            "strokeWidth": 1.5,
-            "fill": "rgba(255, 0, 255, 0.1)"
-          },
-          "zoomOnLoad": true
+          "url": "http://172.20.10.2:5000/nova_result_geojson"
+        },
+        {
+          "name": "Delaunay Triangulation",
+          "type": "geojson",
+          "url": "http://172.20.10.2:5000/nova_delaunay_geojson"
         }
       ]
     },
@@ -143,84 +120,115 @@
         {
           "name": "ATOM Model (QGIS WPS)",
           "type": "wps",
-          "url": "https://huge-zus-efficiently-rays.trycloudflare.com/ows/?",
+          "url": "http://192.168.1.10:8080/ows/?",
           "identifier": "script:ATOM5",
-          "executeMessage": "Running ATOM model..."
-        },
-        {
-          "name": "ATOM DB SCAN CLUSTERS",
-          "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/atom_dbscan_clusters_geojson"
-        },
-        {
-          "name": "ATOM BOUNDING GEOMETRIES",
-          "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/bounding_geometries_geojson"
+          "executeMessage": "Running ATOM model..." 
         },
         {
           "name": "ATOM Polygon",
           "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/atom_polygon_geojson"
-        },
-        {
-          "name": "ATOM DB Cleaned",
-          "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/dbscan_cleaned_geojson"
-        },
-        {
-          "name": "ATOM MR Grid",
-          "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/mr_grid_geojson"
+          "url": "http://172.20.10.2:5000/atom_polygon_geojson"
         },
         {
           "name": "ATOM Population Clusters",
           "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/population_cluster_geojson"
+          "url": "http://172.20.10.2:5000/population_cluster_geojson"
         },
         {
           "name": "ATOM BOUNDING GEOMETRIES",
           "type": "geojson",
-          "url": "https://institute-seniors-priced-advisory.trycloudflare.com/bounding_geometries_geojson"
+          "url": "http://172.20.10.2:5000/bounding_geometries_geojson"
+        },
+        {
+          "name": "ATOM MR Grid",
+          "type": "geojson",
+          "url": "http://172.20.10.2:5000/mr_grid_geojson"
+        },
+        {
+          "name": "ATOM DB Cleaned",
+          "type": "geojson",
+          "url": "http://172.20.10.2:5000/dbscan_cleaned_geojson"
         }
+
+
       ]
     },
     {
-      "id": "wedge_1GeojsonGroup",
-      "name": "Wedge_1 GeoJSON Files",
-      "type": "group",
-      "members": [
-        {
-          "id": "wedgeL900",
-          "name": "Wedge L900",
-          "type": "geojson",
-          "url": "data/wedge_1/wedge_L900.geojson",
-          "isEnabled": false,
-          "zoomOnLoad": false
-        },
-        {
-          "id": "wedgeL1800",
-          "name": "Wedge L1800",
-          "type": "geojson",
-          "url": "data/wedge_1/wedge_L1800.geojson",
-          "isEnabled": false,
-          "zoomOnLoad": false
-        },
-        {
-          "id": "wedgeL2100",
-          "name": "Wedge L2100",
-          "type": "geojson",
-          "url": "data/wedge_1/wedge_L2100.geojson",
-          "isEnabled": false,
-          "zoomOnLoad": false
-        },
-        {
-          "id": "wedgeL2600",
-          "name": "Wedge L2600",
-          "type": "geojson",
-          "url": "data/wedge_1/wedge_L2600.geojson",
-          "isEnabled": false,
-          "zoomOnLoad": false
-        }
+  "id": "wedge_1GeojsonGroup",
+  "name": "Wedge_1 Kepong GeoJSON Files",
+  "type": "group",
+  "members": [
+    {
+      "id": "wedgeL900",
+      "name": "Wedge L900",
+      "type": "geojson",
+      "url": "datas/wedges_kepong/wedge_L900.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "wedgeL1800",
+      "name": "Wedge L1800",
+      "type": "geojson",
+      "url": "datas/wedges_kepong/wedge_L1800.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "wedgeL2100",
+      "name": "Wedge L2100",
+      "type": "geojson",
+      "url": "datas/wedges_kepong/wedge_L2100.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "wedgeL2600",
+      "name": "Wedge L2600",
+      "type": "geojson",
+      "url": "datas/wedges_kepong/wedge_L2600.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    }
+      ]
+    },
+    {
+  "id": "wedge_2GeojsonGroup",
+  "name": "Wedge_2 Penang GeoJSON Files",
+  "type": "group",
+  "members": [
+    {
+      "id": "wedgeL9",
+      "name": "Wedge L9",
+      "type": "geojson",
+      "url": "datas/wedges_penang/wedges_L9.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "wedgeL18",
+      "name": "Wedge L18",
+      "type": "geojson",
+      "url": "datas/wedges_penang/wedges_L18.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "wedgeL21",
+      "name": "Wedge L21",
+      "type": "geojson",
+      "url": "datas/wedges_penang/wedges_L21.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    },
+    {
+      "id": "wedgeL26",
+      "name": "Wedge L26",
+      "type": "geojson",
+      "url": "datas/wedges_penang/wedges_L26.geojson",
+      "isEnabled": false,
+      "zoomOnLoad": false
+    }
       ]
     }
   ],

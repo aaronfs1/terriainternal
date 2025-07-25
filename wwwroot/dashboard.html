@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Dashboard</title>
+</head>
+<body>
+  <h2 id="welcome"></h2>
+
+  <button onclick="logout()">Logout</button>
+
+  <script>
+    const token = localStorage.getItem('accessToken');
+    const name = localStorage.getItem('userName');
+
+    if (!token) {
+      alert('Please login first.');
+      window.location.href = 'index.html';
+    } else {
+      document.getElementById('welcome').innerText = `Welcome, ${name}!`;
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

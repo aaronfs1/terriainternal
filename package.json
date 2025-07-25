@@ -25,7 +25,14 @@
   },
   "dependencies": {
     "@turf/turf": "^7.2.0",
-    "terriajs-server": "^4.0.0"
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg-promise": "^11.15.0",
+    "terriajs-server": "^4.0.0",
+    "uuid": "^11.1.0"
   },
   "config": {
     "docker": {
@@ -51,6 +58,7 @@
     "@typescript-eslint/eslint-plugin": "^6.12.0",
     "@typescript-eslint/parser": "^6.12.0",
     "babel-loader": "^8.2.3",
+    "concurrently": "^9.2.0",
     "css-loader": "^2.1.0",
     "ejs": "^3.1.10",
     "eslint": "^8.57.0",
@@ -105,6 +113,7 @@
     "postinstall": "echo 'Installation successful. What to do next:\\n  yarn gulp dev   # Starts the server on port 3001, builds TerriaMap and dependencies, and rebuilds if files change.'",
     "hot": "webpack-dev-server --inline --config buildprocess/webpack.config.hot.js --hot --host 0.0.0.0",
     "prettier": "prettier --write .",
-    "prettier-check": "prettier --check ."
+    "prettier-check": "prettier --check .",
+    "dev": "concurrently \"yarn start\" \"node server.js\""
   }
 }
