@@ -423,6 +423,15 @@ function initializeButtons() {
   });
 }
 
+function generatePDF(content) {
+    const blob = new Blob([content], { type: "application/pdf" });
+
+    // Simulate download
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "summary.pdf";
+    link.click();
+}
 
 
     function sendMessageToRasa(message) {
@@ -439,6 +448,56 @@ function initializeButtons() {
 document.getElementById("guidelinesButton").addEventListener("click", function () {
     window.open("guideline-preview.png", "_blank");
 });
+
+
+
+userMessageCount++;
+userMessages.push(message);
+
+// After 3 messages, prompt
+if (userMessageCount === 3 && !summaryPromptShown) {
+    summaryPromptShown = true;
+
+    setTimeout(() => {
+        const botMessage = document.createElement("p");
+        botMessage.classList.add("bot");
+        botMessage.textContent = "You’ve been active! Would you like a summary report?";
+        document.querySelector(".chatbox-body").appendChild(botMessage);
+        document.querySelector(".chatbox-body").scrollTop = document.querySelector(".chatbox-body").scrollHeight;
+    }, 1000);
+    return;
+}
+
+// If user says "yes" after 3 messages
+if (summaryPromptShown && message.toLowerCase() === "yes" && !waitingForSummaryChoice) {
+    waitingForSummaryChoice = true;
+
+    const botMessage = document.createElement("p");
+    botMessage.classList.add("bot");
+    botMessage.textContent = "Would you like the summary in the chat or as a downloadable PDF?";
+    document.querySelector(".chatbox-body").appendChild(botMessage);
+    document.querySelector(".chatbox-body").scrollTop = document.querySelector(".chatbox-body").scrollHeight;
+    return;
+}
+
+// Handle user's choice: "chat" or "pdf"
+if (waitingForSummaryChoice && ["chat", "pdf"].includes(message.toLowerCase())) {
+    if (message.toLowerCase() === "chat") {
+        const summaryText = "🔍 Here's a summary of what you asked:\n\n" + userMessages.map((msg, i) => `${i + 1}. ${msg}`).join("\n");
+        const botMessage = document.createElement("p");
+        botMessage.classList.add("bot");
+        botMessage.textContent = summaryText;
+        document.querySelector(".chatbox-body").appendChild(botMessage);
+        document.querySelector(".chatbox-body").scrollTop = document.querySelector(".chatbox-body").scrollHeight;
+    } else if (message.toLowerCase() === "pdf") {
+        const summaryText = "Summary of Your Queries:\n\n" + userMessages.map((msg, i) => `${i + 1}. ${msg}`).join("\n");
+        generatePDF(summaryText);
+    }
+
+    waitingForSummaryChoice = false;
+    return;
+}
+
 
 // Check if the message is a CELL_ID prompt (e.g., "CELL_ID:1023C")
 if (message.toLowerCase().startsWith("cell_id:")) {
@@ -636,6 +695,11 @@ function findLayerByNameRecursive(models, name) {
     }
     return null;
 }
+let userMessageCount = 0;
+let userMessages = [];
+let summaryPromptShown = false;
+let waitingForSummaryChoice = false;
+
 
       sendButton.addEventListener("click", function () {
           const message = chatInput.value.trim();
@@ -699,6 +763,28 @@ function findLayerByNameRecursive(models, name) {
       adminButton.hidden = false; // Show the "Dashboard Approval" button
     }
   });
+//   let inactivityTimer;
+
+// function resetInactivityTimer() {
+//     clearTimeout(inactivityTimer);
+//     inactivityTimer = setTimeout(() => {
+//         initiateSelfDialogue();
+//     }, 15000); // 15 seconds
+// }
+
+// function initiateSelfDialogue() {
+//     const botMessage = document.createElement("p");
+//     botMessage.classList.add("bot");
+//     botMessage.textContent = "Would you like me to run ATOM analysis for this region?";
+//     document.querySelector(".chatbox-body").appendChild(botMessage);
+//     document.querySelector(".chatbox-body").scrollTop = document.querySelector(".chatbox-body").scrollHeight;
+// }
+
+// document.addEventListener("mousemove", resetInactivityTimer);
+// document.addEventListener("keydown", resetInactivityTimer);
+// document.getElementById("sendButton").addEventListener("click", resetInactivityTimer);
+// resetInactivityTimer(); // Initialize when page loads
+
 </script>
 
 </body>
