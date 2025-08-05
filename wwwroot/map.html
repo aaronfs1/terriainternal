@@ -1,10 +1,8 @@
-
-<!DOCTYPE html>
 <html lang="en" class="terria">
 <head>
     <base href="/">
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">  <!-- Use Chrome Frame in IE -->
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
     <meta name="description" content="A web map built on Terria Map">
     <meta name="copyright" content="Copyright(c) 2012-2016 National ICT Australia Limited (NICTA), CSIRO Data61.  All rights reserved.">
@@ -30,152 +28,793 @@
 
     <title>Terria Map</title>
 
+    <!-- Leaflet -->
+    <script>L_PREFER_CANVAS = true;</script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
-    <link rel="stylesheet" href="build/TerriaMap.css" />
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-        }
+      .TerriaLogo___StyledImg-sc-bk2yek-0 {
+    display: none !important;
+}
+.guidelines-button {
+    position: fixed;
+    bottom: 20px;
+    right: 90px; /* Shift left from Chat avatar */
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    border-radius: 50%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    position: fixed;
+}
 
-        #ui {
-            transition: margin-right 0.3s ease;
-            height: 100vh;
-        }
+.guidelines-button:hover .guidelines-tooltip {
+    display: block;
+}
 
-        #chatboxContainer {
-            width: 0;
-            overflow: hidden;
-            background-color: #ffffff;
-            transition: width 0.3s ease;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            right: 0;
-            z-index: 1001;
-            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
-        }
+.guidelines-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 5px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    z-index: 1001;
+}
 
+.guidelines-tooltip img {
+    max-width: 500px;
+    max-height: 700px;
+    border-radius: 10px;
+}
+
+
+.chatbox-avatar {
+    display: flex;
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically if needed */
+    padding: 10px 0; /* Adds some spacing */
+}
+
+.chatbox-avatar img {
+    width: 50px; /* Adjust if needed */
+    height: 50px;
+    border-radius: 50%; /* Makes it round */
+}
+
+
+        /* Floating avatar button */
+        .floating-button {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          width: 50px;
+          height: 50px;
+          background-color: white;
+          border-radius: 50%;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 1000;
+        }
+      
+        .avatar {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+        }
+      
+        .floating-button:hover {
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+          transform: scale(1.05);
+          transition: all 0.2s ease;
+        }
+      
+        /* Chatbox modal */
         .chatbox-modal {
-            width: 400px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 600px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    transition: all 0.3s ease;
+}
 
-        .chatbox-avatar {
-            text-align: center;
-            padding-top: 10px;
-        }
-
-        .chatbox-avatar img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-        }
-
+.chatbox-modal.show {
+    display: block !important; /* 🔥 Force visibility */
+}
+      
         .chatbox-header {
-            background-color: #5A67D8;
-            color: white;
-            padding: 10px;
+          padding: 10px;
+          background-color: #5A67D8;
+          color: white;
+          text-align: center;
+          font-size: 18px;
+          font-weight: bold;
         }
-
+      
         .chatbox-body {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-            background-color: #F9FAFB;
+          padding: 15px;
+          height: 220px;
+          overflow-y: auto;
+          background-color: #F9FAFB;
         }
-
+      
         .chatbox-footer {
-            padding: 10px;
-            border-top: 1px solid #ccc;
-            background-color: #f1f1f1;
-            display: flex;
+          display: flex;
+          align-items: center;
+          padding: 15px;
+          background-color: #f1f1f1;
+          border-top: 1px solid #ddd;
         }
-
+      
         .chatbox-footer input {
-            flex-grow: 1;
-            padding: 10px;
-            border-radius: 25px;
-            border: 1px solid #ccc;
-            outline: none;
+          flex-grow: 1;
+          padding: 10px;
+          border-radius: 25px;
+          border: 1px solid #ccc;
+          outline: none;
         }
-
+      
         .chatbox-footer button {
-            margin-left: 10px;
-            background-color: #5A67D8;
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
+          background-color: #5A67D8;
+          color: white;
+          padding: 8px 15px;
+          border: none;
+          border-radius: 25px;
+          margin-left: 10px;
+          cursor: pointer;
+        }
+      
+        .chatbox-footer button:hover {
+          background-color: #434190;
+        }
+      
+        .chatbox-body p {
+          padding: 10px;
+          border-radius: 15px;
+          margin: 10px 0;
+          max-width: 70%;
+          word-wrap: break-word;
+        }
+      
+        .chatbox-body p.user {
+          background-color: #D6EAF8;
+          color: #0000FF;
+          text-align: right;
+          margin-left: auto;
+        }
+      
+        .chatbox-body p.bot {
+          background-color: #E8EAF6;
+          text-align: left;
+          margin-right: auto;
         }
 
-        #floatingButton {
-            position: fixed;
-            right: 30px;
-            bottom: 30px;
-            z-index: 1100;
-            background-color: #007BFF;
-            color: white;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
+        .tjs__buttons__btn--info:hover {
+          background-color: #b2b6fa;
+          transform: scale(1.05);
         }
-    </style>
+
+        /* Top-Center Flex Wrapper */
+          .info-button-wrapper {
+            position: fixed;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center; /* Horizontally center */
+            z-index: 1000;
+          }
+
+          .tjs__buttons__btn--info {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #3c4656; /* Dark slate color like in image */
+            color: #ffffff;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 999px; /* Pill shape */
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s ease, transform 0.2s ease;
+          }
+
+          .tjs__buttons__btn--info:hover {
+            background-color: #66b1d8; /* Light blue hover like your image */
+            transform: scale(1.05);
+          }
+
+          .tjs__buttons__btn--info .icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+            opacity: 0.9;
+          }
+      </style>
+      
 </head>
+<!-- 🔐 Access Denied Only On Refresh -->
+<script>
+  (function () {
+    const token = localStorage.getItem('accessToken');
+
+    // Check if page was reloaded (modern way)
+    const navEntries = performance.getEntriesByType("navigation");
+    const isReload = navEntries.length > 0 && navEntries[0].type === "reload";
+
+    if (isReload) {
+      // Page was refreshed
+      alert("Access denied. Please log in first.");
+      window.location.href = 'index.html';
+    } else if (!token) {
+      // First visit but no token
+      alert("Access denied. Please log in first.");
+      window.location.href = 'index.html';
+    }
+  })();
+</script>
+
+
+<script>
+  function goToAdminDashboard() {
+    window.location.href = 'admin.html';
+  }
+</script>
+
+<!-- 🔓 Logout Button -->
+<div style="position: fixed; top: 50px; right: 20px; z-index: 2000;">
+  <button onclick="logout()" style="padding: 5px 20px; background-color: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">Logout</button>
+</div>
+<div style="position: fixed; top: 50px; right: 120px; z-index: 2000;" id="adminButtonContainer" hidden>
+  <button onclick="goToAdminDashboard()" style="padding: 5px 20px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">Dashboard Approval</button>
+</div>
+
 <body>
+
+    <!-- Main UI container for Terria -->
     <div id="ui"></div>
 
-    <div id="chatboxContainer">
-        <div class="chatbox-modal">
-            <div class="chatbox-avatar">
-                <img src="avatar.png" alt="Avatar">
-            </div>
-            <div class="chatbox-header">
-                Chat with Ad
-                <button id="refreshChat" style="float: right; background: none; border: none; color: white; font-size: 16px; cursor: pointer;">⟳</button>
-            </div>
-            <div class="chatbox-body">
-                <p>Welcome! How can I help you today?</p>
-                <div class="chatbox-buttons">
-                    <button data-intent="run_wedge_layers">Wedges</button>
-                    <button data-intent="run_nova_layers">Run NOVA</button>
-                    <button data-intent="run_atom_layers">Run ATOM</button>
-                </div>
-            </div>
-            <div class="chatbox-footer">
-                <input type="text" id="chatInput" placeholder="Type a message...">
-                <button id="sendButton">Send</button>
-            </div>
-        </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+
+    <!-- Load CesiumJS -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
+
+    <!-- Load the main TerriaMap JavaScript -->
+    <script src="build/TerriaMap.js"></script>
+
+    <!-- Load the custom script for injecting 3D models -->
+    <script src="https://cdn.jsdelivr.net/npm/mobx@6.9.0/dist/mobx.umd.production.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script> -->
+
+
+    <div class="info-button-wrapper">
+      <button class="tjs__buttons__btn--info" onclick="openGrafanaDashboard()">
+        <img src="https://cdn-icons-png.flaticon.com/512/2041/2041637.png" alt="Data Icon" class="icon" />
+        View Dashboard
+      </button>
+      <button class="tjs__buttons__btn--info" onclick="openBufferModal()">
+        <img src="https://cdn-icons-png.flaticon.com/512/2041/2041637.png" alt="PAVE Icon" class="icon" />
+        Run Process 
+      </button>
     </div>
 
-    <button id="floatingButton">💬</button>
-
-    <script src="build/TerriaMap.js"></script>
-    <script src="index.js"></script>
+    <div id="bufferModal" class="modal" style="display:none; position:fixed; top:10%; left:10%; width:80%; height:80%; background:white; z-index:1000; border: 2px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.5);">
+      <div style="padding:10px; text-align:right;">
+        <button onclick="closeBufferModal()">Close</button>
+      </div>
+      <iframe id="bufferFrame" src="" style="width:100%; height:90%; border:none;"></iframe>
+    </div>
+  </div>
+    
+    
     <script>
-        const floatingButton = document.getElementById("floatingButton");
-        const chatboxContainer = document.getElementById("chatboxContainer");
-        const mapContainer = document.getElementById("ui");
-
-        floatingButton.addEventListener("click", () => {
-            const isOpen = chatboxContainer.style.width === "400px";
-            if (isOpen) {
-                chatboxContainer.style.width = "0";
-                mapContainer.style.marginRight = "0";
-            } else {
-                chatboxContainer.style.width = "400px";
-                mapContainer.style.marginRight = "400px";
-            }
-        });
+      function openBufferModal() {
+        const modal = document.getElementById('bufferModal');
+        const frame = document.getElementById('bufferFrame');
+        frame.src = "https://institute-seniors-priced-advisory.trycloudflare.com";
+        modal.style.display = "block";
+      }
+    
+      function closeBufferModal() {
+        const modal = document.getElementById('bufferModal');
+        const frame = document.getElementById('bufferFrame');
+        frame.src = ""; // Clear iframe on close
+        modal.style.display = "none";
+      }
     </script>
+
+<script>
+  async function openGrafanaDashboard() {
+    // Use the Ngrok URL you get when running Ngrok
+    const ngrokUrl = "https://invalid-un-composed-faster.trycloudflare.com"; // Replace with your actual Ngrok URL
+    const dashboardPath = "/d/aefhk408ovk74e/cell-id-dashboard";
+
+    window.open(`${ngrokUrl}${dashboardPath}`, "_blank");
+  }
+</script>
+
+    <!-- Floating Avatar Button -->
+<div class="floating-button" id="floatingButton">
+    <img src="avatar.png" alt="Avatar" class="avatar">
+</div>
+
+<!-- Chatbox Modal -->
+<div class="chatbox-modal" id="chatboxModal">
+    <div class="chatbox-avatar">
+        <img src="avatar.png" alt="Avatar">
+    </div>
+    <div class="chatbox-header">
+      Chat with Ad
+      <button id="refreshChat" style="float: right; background: none; border: none; color: white; font-size: 16px; cursor: pointer;">⟳</button>
+  </div>
+  <!-- Guidelines Hover Button -->
+<div class="guidelines-button" id="guidelinesButton">
+  <img src="guide-icon.png" alt="Guidelines" class="avatar">
+  <div class="guidelines-tooltip">
+    <img src="guideline-preview.png" alt="Guideline Preview" />
+  </div>
+</div>
+
+    <div class="chatbox-body">
+        <p>Welcome! How can I help you today?</p>
+        <div class="chatbox-buttons">
+            <!-- <button data-intent="ask_downlink_user">Downlink User</button>
+            <button data-intent="show_low_prb_utilization">PRB Utilization</button> -->
+            <!-- <button data-intent="run_buffer_process">Run Buffer</button> -->
+             <button data-intent="run_wedge_layers">Wedges</button>
+            <button data-intent="run_nova_layers">Run NOVA</button>
+             <button data-intent="run_atom_layers">Run ATOM</button> <!-- ✅ New Button -->
+        </div>
+    </div>
+    <div class="chatbox-footer">
+        <input type="text" id="chatInput" placeholder="Type a message...">
+        <button id="sendButton">Send</button>
+    </div>
+</div>
+
+<script src="load3DModels.js"></script>
+<script src="index.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      const refreshButton = document.getElementById("refreshChat");
+      const chatBody = document.querySelector(".chatbox-body");
+      const chatInput = document.getElementById("chatInput");
+      const sendButton = document.getElementById("sendButton");
+      
+
+      const rasaServerUrl = "http://localhost:5005/webhooks/rest/webhook"; // Update with your RASA server URL
+
+function initializeButtons() {
+  document.querySelectorAll(".chatbox-buttons button").forEach((button) => {
+    button.addEventListener("click", function () {
+      const intent = this.getAttribute("data-intent");
+
+      // 🔒 RESERVED buttons: Don't send to Rasa
+      if (intent === "run_nova_layers") {
+        runNOVA();
+        return;
+      }
+      if (intent === "run_atom_layers") {
+        runATOM();
+        return;
+      }
+      if (intent === "run_wedge_layers") {
+        runWedges();
+        return;
+      }
+
+      // 🟢 Other buttons are sent normally
+      sendMessageToRasa(intent);
+    });
+  });
+}
+
+async function generatePDF(content) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4"
+  });
+
+  // Use a clean, UTF-8-compatible font (no emoji, fallback only)
+  doc.setFont("courier", "normal");
+  doc.setFontSize(10);
+
+  // Clean up emojis manually (optional fallback)
+  const sanitized = content
+    .replace(/🔍/g, "Summary:")
+    .replace(/🙋‍♂️/g, "You:")
+    .replace(/🤖/g, "Bot:")
+    .replace(/📂/g, "Ticket:")
+    .replace(/📁/g, "Category:")
+    .replace(/📏/g, "Distance:");
+
+  const lines = doc.splitTextToSize(sanitized, 180); // Wrap at 180mm
+  doc.text(lines, 10, 20);
+
+  doc.save("summary.pdf");
+}
+
+
+    function sendMessageToRasa(message) {
+    function isValidCellID(input) {
+        return /^[a-zA-Z0-9]+$/.test(input); // Matches alphanumeric only
+    }
+
+     const trivialInputs = ["yes", "chat", "pdf"];
+    if (!trivialInputs.includes(message.toLowerCase())) {
+        userMessages.push(message);
+        userMessageCount++;
+        messageHistory.push({ role: "user", text: message }); // ✅ [NEW] Track user message
+    }
+
+    // Append user message to chat
+    const userMessage = document.createElement("p");
+    userMessage.classList.add("user");
+    userMessage.textContent = message;
+    chatBody.appendChild(userMessage);
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    // ⏳ Trigger summary prompt after 3 non-trivial user messages
+    if (userMessageCount === 3 && !summaryPromptShown) {
+        summaryPromptShown = true;
+        setTimeout(() => {
+            const botMessage = document.createElement("p");
+            botMessage.classList.add("bot");
+            botMessage.textContent = "You’ve been active! Would you like a summary report?";
+            chatBody.appendChild(botMessage);
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            messageHistory.push({ role: "bot", text: botMessage.textContent }); // ✅ [NEW]
+        }, 1000);
+        return;
+    }
+
+    // Handle user's "yes" after summary prompt
+    if (summaryPromptShown && message.toLowerCase() === "yes" && !waitingForSummaryChoice) {
+        waitingForSummaryChoice = true;
+        const botMessage = document.createElement("p");
+        botMessage.classList.add("bot");
+        botMessage.textContent = "Would you like the summary in the chat or as a downloadable PDF?";
+        chatBody.appendChild(botMessage);
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        messageHistory.push({ role: "bot", text: botMessage.textContent }); // ✅ [NEW]
+        return;
+    }
+
+    // Handle user's summary preference
+    if (waitingForSummaryChoice && ["chat", "pdf"].includes(message.toLowerCase())) {
+let userIndex = 1;
+let summaryText = "🔍 Here's a summary of your conversation:\n\n";
+let tempBlock = ""; // Collects one user + related bot replies
+let currentUserIndex = 0;
+
+messageHistory.forEach((entry, index) => {
+    if (entry.role === "user") {
+        // If there's an unfinished block, flush it with separator
+        if (tempBlock.trim() !== "") {
+            summaryText += tempBlock + "\n\n------------------------------\n\n";
+            tempBlock = "";
+        }
+
+        currentUserIndex = userIndex++;
+        tempBlock += `${currentUserIndex}. 🙋‍♂️ You:\n${entry.text}\n`;
+    } else if (entry.role === "bot") {
+        tempBlock += `\n🤖 Bot:\n${entry.text}`;
+    }
+
+    // If it's the last entry, flush the block
+    if (index === messageHistory.length - 1 && tempBlock.trim() !== "") {
+        summaryText += tempBlock + "\n\n------------------------------\n\n";
+    }
+});
+
+
+
+        if (message.toLowerCase() === "chat") {
+            const botMessage = document.createElement("p");
+            botMessage.classList.add("bot");
+    botMessage.innerHTML = summaryText.replace(/\n/g, "<br>");
+            chatBody.appendChild(botMessage);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        } else {
+            generatePDF(summaryText); // PDF version
+        }
+
+        waitingForSummaryChoice = false;
+        return;
+    }
+
+
+// Check if the message is a CELL_ID prompt (e.g., "CELL_ID:1023C")
+if (message.toLowerCase().startsWith("cell_id:")) {
+    const CELL_ID = message.substring("cell_id:".length).trim();
+    console.log(`📍 Recognized Cell ID for Grafana: ${CELL_ID}`);
+    if (CELL_ID) {
+        // Fly to the location on the map (if the function exists)
+        if (typeof window.flyToSiteID === "function") {
+            window.flyToSiteID(CELL_ID);
+        } else {
+            console.error("❌ flyToSiteID function is not available.");
+        }
+
+        const grafanaUrl = `https://invalid-un-composed-faster.trycloudflare.com/d/aefhk408ovk74e/cell-id-dashboard?orgId=1&var-cell_id=${encodeURIComponent(CELL_ID)}`;
+        const newTab = window.open(grafanaUrl, '_blank'); // Opens in a new tab
+
+        // Check if the new tab was blocked
+        if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+            alert("Popup blocked! Please allow popups for this site to open the Grafana dashboard.");
+        }
+    }
+}
+function isValidTicketID(input) {
+    return (
+        /^[0-9]{5}-[0-9]{4}$/i.test(input) ||   // your format: 07489-1950
+        /^[a-z0-9]{4}-[a-z0-9]{4}$/i.test(input) || // 4-4 format
+        /^[a-z0-9\-]{19,}$/i.test(input)           // long UUID-style
+    );
+}
+
+    if (message.toLowerCase().includes("buffer")) {
+    console.log("📦 Buffer process triggered via chatbot.");
+
+    // Open the buffer modal
+    openBufferModal(); // This already exists in your HTML
+}
+// 🆕 Check for "Run NOVA" intent
+if (message.toLowerCase().includes("nova")) {
+    console.log("🚀 Run NOVA triggered via chatbot.");
+    runNOVA();
+}
+if (message.toLowerCase().includes("atom")) {
+    console.log("⚛️ Run ATOM triggered via chatbot.");
+    runATOM();
+}
+if (message.toLowerCase().includes("wedge")) {
+    console.log("🔻 Run WEDGES triggered via chatbot.");
+    runWedges();
+}
+
+
+
+    // 🆕 Check if it's a Ticket ID
+    if (isValidTicketID(message)) {
+    const TICKET_ID = message.trim();
+    console.log(`🎟️ Recognized Ticket ID: ${TICKET_ID}`);
+
+    // ✅ First try your new dataset
+    if (typeof window.flyToNetworkComplain2 === "function") {
+        window.flyToNetworkComplain2(TICKET_ID);
+    }
+
+    // ✅ Then fallback to old one
+    else if (typeof window.flyToTicketLocation === "function") {
+        window.flyToTicketLocation(TICKET_ID);
+    } else {
+        console.error("❌ No fly-to function available for Ticket ID.");
+    }
+}
+
+    // ✅ Check if it's a Site ID (CELL_ID)
+    else if (isValidCellID(message)) {
+        const CELL_ID = message.trim();
+        console.log(`📍 Recognized Cell ID: ${CELL_ID}`);
+        if (typeof window.flyToSiteID === "function") {
+            window.flyToSiteID(CELL_ID);
+        } else {
+            console.error("❌ flyToSiteID function is not available.");
+        }
+const grafanaUrl = `https://invalid-un-composed-faster.trycloudflare.com/d/aefhk408ovk74e/cell-id-dashboard?orgId=1&var-cell_id=${encodeURIComponent(CELL_ID)}`;
+const newTab = window.open(grafanaUrl, '_blank');
+if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+    alert("Popup blocked! Please allow popups for this site.");
+}
+
+    }
+
+    // Always send to Rasa server
+       fetch(rasaServerUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        data.forEach(response => {
+            const botMessage = document.createElement("p");
+            botMessage.classList.add("bot");
+            botMessage.textContent = response.text;
+            chatBody.appendChild(botMessage);
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            messageHistory.push({ role: "bot", text: response.text }); // ✅ [NEW] Track bot reply
+        });
+    })
+    .catch(error => {
+        console.error("Error sending message:", error);
+        const errorMessage = document.createElement("p");
+        errorMessage.classList.add("bot");
+        errorMessage.textContent = "Sorry, an error occurred. Please try again.";
+        chatBody.appendChild(errorMessage);
+
+        messageHistory.push({ role: "bot", text: errorMessage.textContent }); // ✅ [NEW]
+    });
+}
+function runATOM() {
+    console.log("⚛️ Run ATOM button clicked");
+
+    const atomLayerIds = [
+        "ATOM DB SCAN CLUSTERS",
+        "ATOM Polygon",
+        "ATOM DB Cleaned",
+        "ATOM MR Grid",
+        "ATOM Population Clusters"
+    ];
+
+    const catalogModels = window.terria.catalog.group.memberModels;
+
+    atomLayerIds.forEach(layerName => {
+        const layerModel = findLayerByNameRecursive(catalogModels, layerName);
+
+        if (layerModel) {
+            window.terria.workbench.add(layerModel);
+            console.log(`✅ Enabled ATOM layer: ${layerName}`);
+        } else {
+            console.warn(`⚠️ ATOM layer not found: ${layerName}`);
+        }
+    });
+}
+function runWedges() {
+    console.log("🧭 Loading Wedge layers...");
+
+    const wedgeLayerIds = [
+        "Wedge L900",
+        "Wedge L1800",
+        "Wedge L2100",
+        "Wedge L2600"
+    ];
+
+    const catalogModels = window.terria.catalog.group.memberModels;
+
+    wedgeLayerIds.forEach(layerName => {
+        const layerModel = findLayerByNameRecursive(catalogModels, layerName);
+
+        if (layerModel) {
+            window.terria.workbench.add(layerModel);
+            console.log(`✅ Loaded: ${layerName}`);
+        } else {
+            console.warn(`⚠️ Not found: ${layerName}`);
+        }
+    });
+}
+
+function runNOVA() {
+    console.log("🚀 Run NOVA button clicked");
+
+    const novaLayerIds = [
+      "NOVA Nominal Point",
+        "NOVA Buffer",
+        "NOVA Result",
+        "Delaunay Triangulation"
+    ];
+
+    // 🔍 Search from full catalog
+    const catalogModels = window.terria.catalog.group.memberModels;
+
+    novaLayerIds.forEach(layerName => {
+        const layerModel = findLayerByNameRecursive(catalogModels, layerName);
+
+        if (layerModel) {
+            window.terria.workbench.add(layerModel);
+            console.log(`✅ Enabled layer: ${layerName}`);
+        } else {
+            console.warn(`⚠️ Layer not found: ${layerName}`);
+        }
+    });
+}
+
+// 🔍 Recursive layer search
+function findLayerByNameRecursive(models, name) {
+    for (const item of models) {
+        if (item.name === name) {
+            return item;
+        }
+        if (item.memberModels && item.memberModels.length > 0) {
+            const found = findLayerByNameRecursive(item.memberModels, name);
+            if (found) return found;
+        }
+    }
+    return null;
+}
+let userMessageCount = 0;
+let userMessages = [];
+let messageHistory = []; // ✅ [NEW] Stores full conversation (user + bot)
+let summaryPromptShown = false;
+let waitingForSummaryChoice = false;
+
+      sendButton.addEventListener("click", function () {
+          const message = chatInput.value.trim();
+          if (message !== "") {
+              sendMessageToRasa(message);
+              chatInput.value = ""; // Clear input field after sending
+          }
+      });
+
+      refreshButton.addEventListener("click", function () {
+          chatBody.innerHTML = `
+              <p>Welcome! How can I help you today?</p>
+              <div class="chatbox-buttons">
+                  // <button data-intent="ask_downlink_user">Downlink User</button>
+                  // <button data-intent="show_low_prb_utilization">PRB Utilization</button>
+                  // <button data-intent="run_buffer_process">Run Buffer</button>
+                  <button data-intent="run_nova_layers">Run NOVA</button>
+                  <button data-intent="run_wedge_layers">Wedges</button>
+
+
+              </div>
+          `;
+          chatInput.value = ""; // Clears the input field
+          initializeButtons(); // Rebind event listeners after reset
+      });
+
+      initializeButtons(); // Ensure buttons work on page load
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+      console.log("🔍 Searching for Terria logo...");
+
+      setTimeout(() => {
+          const terriaLogo = document.querySelector(".TerriaLogo___StyledImg-sc-bk2yek-0");
+          if (terriaLogo) {
+              terriaLogo.remove();
+              console.log("❌ Removed Terria logo.");
+          } else {
+              console.warn("⚠️ Terria logo not found.");
+          }
+      }, 1000);
+      
+  });
+
+</script>
+  
+<script>
+  function logout() {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('isAdmin');
+    window.location.href = 'index.html';
+  }
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const isAdmin = localStorage.getItem('isAdmin');
+    const adminButton = document.getElementById('adminButtonContainer');
+
+    if (isAdmin === 'true') {
+      adminButton.hidden = false; // Show the "Dashboard Approval" button
+    }
+  });
+
+</script>
+
 </body>
 </html>
