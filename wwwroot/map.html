@@ -816,5 +816,170 @@ let waitingForSummaryChoice = false;
 
 </script>
 
+<!-- START FOR DISPLAY COMPLAINT -->
+<style>
+  #site-count-box {
+    position: fixed;
+    top: 100px;
+    left: 20px;
+    background-color: #ffffffee;
+    border: 2px solid #3498db;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
+  }
+</style>
+
+<div id="complaint-count-box">Complaint in view: Loading...</div>
+<script>
+  function updateComplaintCount() {
+    if (!window.terria || !window.terria.cesium || !window.terria.cesium.scene) {
+      console.warn("Cesium not fully loaded yet.");
+      return;
+    }
+
+    const camera = window.terria.cesium.scene.camera;
+    const rectangle = window.terria.cesium.scene.camera.computeViewRectangle();
+
+    if (!rectangle) return;
+
+    const minLng = Cesium.Math.toDegrees(rectangle.west);
+    const maxLng = Cesium.Math.toDegrees(rectangle.east);
+    const minLat = Cesium.Math.toDegrees(rectangle.south);
+    const maxLat = Cesium.Math.toDegrees(rectangle.north);
+
+    fetch(`http://localhost:3002/api/complaint/count?minLat=${minLat}&maxLat=${maxLat}&minLng=${minLng}&maxLng=${maxLng}`)
+      .then(res => res.json())
+      .then(data => {
+        const count = data.count;
+        document.getElementById('complaint-count-box').innerText = `Complaint in view: ${count}`;
+      })
+      .catch(err => {
+        console.error("Failed to fetch complaint count", err);
+        document.getElementById('compalaint-count-box').innerText = `Complaint in view: error`;
+      });
+  }
+
+  // Update site count every 5 seconds
+  setInterval(updateSiteCount, 5000);
+
+  // Also update after page load (once Terria is ready)
+  setTimeout(updateSiteCount, 3000);
+</script>
+
+<!-- START FOR DISPLAY SITES 
+<style>
+  #site-count-box {
+    position: fixed;
+    top: 100px;
+    left: 20px;
+    background-color: #ffffffee;
+    border: 2px solid #3498db;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
+  }
+</style>
+
+<div id="site-count-box">Complaint in view: Loading...</div>
+<script>
+  function updateComplaintCount() {
+    if (!window.terria || !window.terria.cesium || !window.terria.cesium.scene) {
+      console.warn("Cesium not fully loaded yet.");
+      return;
+    }
+
+    const camera = window.terria.cesium.scene.camera;
+    const rectangle = window.terria.cesium.scene.camera.computeViewRectangle();
+
+    if (!rectangle) return;
+
+    const minLng = Cesium.Math.toDegrees(rectangle.west);
+    const maxLng = Cesium.Math.toDegrees(rectangle.east);
+    const minLat = Cesium.Math.toDegrees(rectangle.south);
+    const maxLat = Cesium.Math.toDegrees(rectangle.north);
+
+    fetch(`http://localhost:3002/api/sites/count?minLat=${minLat}&maxLat=${maxLat}&minLng=${minLng}&maxLng=${maxLng}`)
+      .then(res => res.json())
+      .then(data => {
+        const count = data.count;
+        document.getElementById('site-count-box').innerText = `Site in view: ${count}`;
+      })
+      .catch(err => {
+        console.error("Failed to fetch site count", err);
+        document.getElementById('site-count-box').innerText = `Site in view: error`;
+      });
+  }
+
+  // Update site count every 5 seconds
+  setInterval(updateSiteCount, 5000);
+
+  // Also update after page load (once Terria is ready)
+  setTimeout(updateSiteCount, 3000);
+</script> -->
+
+<!-- START FOR GRAPH -->
+ <!--
+<div style="position: fixed; top: 160px; left: 20px; z-index: 2000; background: white; padding: 8px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); width: 260px; font-size: 11px; font-family: sans-serif; overflow: hidden;">
+
+  <!-- RSRP -->
+  <div style="margin-bottom: 10px;">
+    <div style="font-weight: bold; margin-bottom: 4px;">RSRP Distribution</div>
+    <iframe id="rsrpFrame" src="" width="240" height="120" frameborder="0"></iframe>
+  </div>
+
+  <!-- Download -->
+  <div style="margin-bottom: 10px;">
+    <div style="font-weight: bold; margin-bottom: 4px;">Download Distribution (kbps)</div>
+    <iframe id="downloadFrame" src="" width="240" height="120" frameborder="0"></iframe>
+  </div>
+
+  <!-- Upload -->
+  <div>
+    <div style="font-weight: bold; margin-bottom: 4px;">Upload Distribution (kbps)</div>
+    <iframe id="uploadFrame" src="" width="240" height="120" frameborder="0"></iframe>
+  </div>
+</div>
+
+<script>
+function updateSupersetCharts(minLat, maxLat, minLng, maxLng) {
+  const baseRsrpUrl = "http://localhost:9090/superset/explore/p/4eAK98O285a/?standalone=1";
+  const baseDownloadUrl = "http://localhost:8088/superset/explore/p/download_chart_id/?standalone=1";
+  const baseUploadUrl = "http://localhost:8088/superset/explore/p/upload_chart_id/?standalone=1";
+
+  document.getElementById("rsrpFrame").src =
+    `${baseRsrpUrl}&min_lat=${minLat}&max_lat=${maxLat}&min_lng=${minLng}&max_lng=${maxLng}`;
+  document.getElementById("downloadFrame").src =
+    `${baseDownloadUrl}&min_lat=${minLat}&max_lat=${maxLat}&min_lng=${minLng}&max_lng=${maxLng}`;
+  document.getElementById("uploadFrame").src =
+    `${baseUploadUrl}&min_lat=${minLat}&max_lat=${maxLat}&min_lng=${minLng}&max_lng=${maxLng}`;
+}
+
+function fetchSupersetDistribution() {
+  if (!window.terria?.cesium?.scene?.camera) return;
+  const rect = window.terria.cesium.scene.camera.computeViewRectangle();
+  if (!rect) return;
+
+  const minLng = Cesium.Math.toDegrees(rect.west);
+  const maxLng = Cesium.Math.toDegrees(rect.east);
+  const minLat = Cesium.Math.toDegrees(rect.south);
+  const maxLat = Cesium.Math.toDegrees(rect.north);
+
+  updateSupersetCharts(minLat, maxLat, minLng, maxLng);
+}
+
+// refresh every 5s
+setInterval(fetchSupersetDistribution, 5000);
+setTimeout(fetchSupersetDistribution, 3000);
+</script>
+
+-
+
 </body>
 </html>
