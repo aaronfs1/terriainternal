@@ -197,88 +197,33 @@ app.put('/admin/users/:id/approve', authenticateToken, async (req, res) => {
     }
 });
 
+app.post("/api/viewport/update", async (req, res) => {
+  const { user_id, min_lat, max_lat, min_lon, max_lon } = req.body || {};
+  if (!user_id || min_lat === undefined || max_lat === undefined || min_lon === undefined || max_lon === undefined) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  try {
+    await db.none(
+      `
+      INSERT INTO user_viewport (user_id, min_lat, max_lat, min_lon, max_lon, updated_at)
+      VALUES ($1, $2, $3, $4, $5, now())
+      ON CONFLICT (user_id) DO UPDATE
+      SET min_lat = EXCLUDED.min_lat,
+          max_lat = EXCLUDED.max_lat,
+          min_lon = EXCLUDED.min_lon,
+          max_lon = EXCLUDED.max_lon,
+          updated_at = now();
+      `,
+      [user_id, min_lat, max_lat, min_lon, max_lon]
+    );
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
-});
-
-// ✅ New: API to count complaint within a bounding box
-app.get('/api/somplaint/count', async (req, res) => {
-    const { minLat, maxLat, minLng, maxLng } = req.query;
-
-    if (!minLat || !maxLat || !minLng || !maxLng) {
-        return res.status(400).json({ error: 'Missing bounding box parameters' });
-    }
-
-    const query = `
-        SELECT COUNT(*) FROM complaint_locations
-        WHERE latitude BETWEEN $1 AND $2
-          AND longitude BETWEEN $3 AND $4
-    `;
-
-    try {
-        const result = await db.one(query, [
-            parseFloat(minLat),
-            parseFloat(maxLat),
-            parseFloat(minLng),
-            parseFloat(maxLng)
-        ]);
-        res.json({ count: parseInt(result.count, 10) });
-    } catch (error) {
-        console.error('Error fetching complaint count:', error);
-        res.status(500).json({ error: 'Failed to fetch complaint count' });
-    }
-});
-
-// ✅ New: API to count complaint within a bounding box
-/*app.get('/api/site/count', async (req, res) => {
-    const { minLat, maxLat, minLng, maxLng } = req.query;
-
-    if (!minLat || !maxLat || !minLng || !maxLng) {
-        return res.status(400).json({ error: 'Missing bounding box parameters' });
-    }
-
-    const query = `
-        SELECT COUNT(*) FROM site_locations
-        WHERE latitude BETWEEN $1 AND $2
-          AND longitude BETWEEN $3 AND $4
-    `;
-
-    try {
-        const result = await db.one(query, [
-            parseFloat(minLat),
-            parseFloat(maxLat),
-            parseFloat(minLng),
-            parseFloat(maxLng)
-        ]);
-        res.json({ count: parseInt(result.count, 10) });
-    } catch (error) {
-        console.error('Error fetching site count:', error);
-        res.status(500).json({ error: 'Failed to fetch site count' });
-    }
-});*/
-
-
-
-// START FOR GRAPH
-// ✅ New: Get signal distributions based on map bounds
-app.get('/api/signal/distribution', async (req, res) => {
-    const { minLat, maxLat, minLng, maxLng } = req.query;
-
-    if (!minLat || !maxLat || !minLng || !maxLng) {
-        return res.status(400).json({ error: 'Missing bounding box parameters' });
-    }
-
-    try {
-        const data = await db.any(`
-            SELECT rsrp, download, upload
-            FROM signal
-            WHERE latitude BETWEEN $1 AND $2
-              AND longitude BETWEEN $3 AND $4
-        `, [parseFloat(minLat), parseFloat(maxLat), parseFloat(minLng), parseFloat(maxLng)]);
-
-        res.json(data);
-    } catch (error) {
-        console.error('Error fetching signal data:', error);
-        res.status(500).json({ error: 'Failed to fetch signal data' });
-    }
 });
