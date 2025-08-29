@@ -1050,8 +1050,250 @@ let waitingForSummaryChoice = false;
   });
 
 </script>
+<<<<<<< HEAD
 
 
+=======
+<!-- START FOR GRAPH -->
+<!-- Toggle Button -->
+<button 
+  id="toggleGraphsBtn" 
+  style="position: fixed; top: 58px; right: 320px; z-index: 2100; padding: 6px 10px; border-radius: 6px; border: none; background: #1976d2; color: white; cursor: pointer; font-size: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+  📊 Show Graphs
+</button>
+
+<!-- Graphs Side Panel -->
+<div id="graphsContainer">
+  <div class="graph-header">
+    <span>📊 Network Graphs</span>
+    <button id="closeGraphsBtn">×</button>
+  </div>
+
+  <!-- RSRP -->
+  <div class="graph-block">
+    <div class="graph-title">RSRP Distribution</div>
+    <iframe id="rsrpFrame" src="http://localhost:9090/superset/explore/p/0ae7wYe2vO9/?standalone=1&height=400"></iframe>
+  </div>
+
+  <!-- Download -->
+  <div class="graph-block">
+    <div class="graph-title">Download Distribution</div>
+    <iframe id="downloadFrame" src="http://localhost:9090/superset/explore/p/V9v74No2Anr/?standalone=1&height=400"></iframe>
+  </div>
+
+  <!-- Upload -->
+  <div class="graph-block">
+    <div class="graph-title">Upload Distribution</div>
+    <iframe id="uploadFrame" src="http://localhost:9090/superset/explore/p/eA5K8xkKaNn/?standalone=1&height=400"></iframe>
+  </div>
+
+  <!-- Sites + Complaints side by side -->
+<div class="graph-row">
+  <!-- Num of Sites -->
+  <div class="graph-blocks">
+    <div class="graph-title">Number of Sites</div>
+    <iframe id="sitesFrame" src="http://localhost:9090/superset/explore/p/GpZ2qwY7XNW/?standalone=1&height=400"></iframe>
+  </div>
+
+  <!-- Num of Complaints -->
+  <div class="graph-blocks">
+    <div class="graph-title">Number of Complaints</div>
+    <iframe id="complaintsFrame" src="http://localhost:9090/superset/explore/p/MJ87nzk7GEq/?standalone=1&height=400"></iframe>
+  </div>
+</div>
+
+
+<style>
+/* Side panel container */
+#graphsContainer {
+  position: fixed;
+  top: 0;
+  left: -350px; /* hidden by default */
+  width: 320px;
+  height: 100%;
+  background: #fff;
+  border-left: 2px solid #ddd;
+  box-shadow: -2px 0 6px rgba(0,0,0,0.2);
+  transition: right 0.3s ease;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  font-size: 12px;
+  font-family: sans-serif;
+}
+
+#graphsContainer.open {
+  left: 0; /* slides in */
+}
+
+/* Header */
+.graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ccc;
+}
+
+#closeGraphsBtn {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* Each block */
+.graph-block {
+  margin-top: 10px;
+}
+
+.graph-title {
+  font-weight: bold;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+/* Consistent iframes */
+.graph-block iframe {
+  width: 100%;
+  height: 130px;
+  border-radius: 8px;
+  border: none;
+}
+
+/*for site and complaint*/
+.graph-blocks iframe {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  border: none;
+}
+/* Row container for graphs */
+.graph-row {
+  display: flex;
+  gap: 15px;          /* space between the two blocks */
+}
+
+/* Make both blocks share equal width */
+.graph-row .graph-block {
+  flex: 1;
+}
+
+/* Hide toggle button when workbench or graph is open */
+.hide-toggle {
+  display: none !important;
+}
+
+</style>
+
+<script>
+/* Toggle button logic */
+document.getElementById("toggleGraphsBtn").addEventListener("click", function() {
+  const container = document.getElementById("graphsContainer");
+  container.classList.toggle("open");
+
+  if (container.classList.contains("open")) {
+    this.classList.add("hide-toggle"); // hide button when panel is open
+  } else {
+    this.innerText = "📊 Show Graphs";
+  }
+});
+
+/* Close button inside panel */
+document.getElementById("closeGraphsBtn").addEventListener("click", function() {
+  const toggleBtn = document.getElementById("toggleGraphsBtn");
+  document.getElementById("graphsContainer").classList.remove("open");
+  toggleBtn.innerText = "📊 Show Graphs";
+  toggleBtn.classList.remove("hide-toggle"); // show again when closed
+});
+
+/* Refresh Superset iframes */
+function refreshSupersetIframe() {
+  ["rsrpFrame", "downloadFrame", "uploadFrame", "sitesFrame", "complaintsFrame"].forEach(id => {
+    const iframe = document.getElementById(id);
+    if (iframe) {
+      iframe.src = iframe.src.split("&r=")[0] + "&r=" + Date.now();
+    }
+  });
+}
+
+/* Send viewport to backend */
+function postViewport(minLat, maxLat, minLng, maxLng) {
+  return fetch("http://localhost:3002/api/viewport/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: "1",
+      min_lat: minLat,
+      max_lat: maxLat,
+      min_lon: minLng,
+      max_lon: maxLng
+    })
+  });
+}
+
+function sendViewportToBackend() {
+  const scene = window.terria?.cesium?.scene;
+  if (!scene || !scene.camera) return;
+  const rect = scene.camera.computeViewRectangle();
+  if (!rect) return;
+
+  const minLng = Cesium.Math.toDegrees(rect.west);
+  const maxLng = Cesium.Math.toDegrees(rect.east);
+  const minLat = Cesium.Math.toDegrees(rect.south);
+  const maxLat = Cesium.Math.toDegrees(rect.north);
+
+  postViewport(minLat, maxLat, minLng, maxLng)
+    .then(() => refreshSupersetIframe())
+    .catch(err => console.error("Failed to update viewport:", err));
+}
+
+/* Debounce so we don’t hammer backend */
+function debounce(fn, ms) {
+  let t;
+  return function () {
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, arguments), ms);
+  };
+}
+const debouncedSend = debounce(sendViewportToBackend, 300);
+
+/* Attach viewport listener */
+function attachViewportUpdater() {
+  const scene = window.terria?.cesium?.scene;
+  if (scene && scene.camera) {
+    scene.camera.moveEnd.addEventListener(debouncedSend);
+    // Send once at startup
+    setTimeout(sendViewportToBackend, 500);
+    console.log("Viewport updater attached!");
+  } else {
+    setTimeout(attachViewportUpdater, 500);
+  }
+}
+
+function observeWorkbench() {
+  const workbench = document.querySelector(".tjs-workbench"); // adjust selector
+  if (!workbench) return;
+
+  const toggleBtn = document.getElementById("toggleGraphsBtn");
+  const observer = new MutationObserver(() => {
+    if (workbench.classList.contains("is-open")) {  
+      toggleBtn.classList.add("hide-toggle");
+    } else {
+      toggleBtn.classList.remove("hide-toggle");
+    }
+  });
+
+  observer.observe(workbench, { attributes: true, attributeFilter: ["class"] });
+}
+
+observeWorkbench();
+attachViewportUpdater();
+</script>
+
+>>>>>>> 3ca54fa131b08028f8867a23edadfbe4ac221080
 
 </body>
 </html>

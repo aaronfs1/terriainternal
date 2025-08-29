@@ -197,6 +197,33 @@ app.put('/admin/users/:id/approve', authenticateToken, async (req, res) => {
     }
 });
 
+app.post("/api/viewport/update", async (req, res) => {
+  const { user_id, min_lat, max_lat, min_lon, max_lon } = req.body || {};
+  if (!user_id || min_lat === undefined || max_lat === undefined || min_lon === undefined || max_lon === undefined) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  try {
+    await db.none(
+      `
+      INSERT INTO user_viewport (user_id, min_lat, max_lat, min_lon, max_lon, updated_at)
+      VALUES ($1, $2, $3, $4, $5, now())
+      ON CONFLICT (user_id) DO UPDATE
+      SET min_lat = EXCLUDED.min_lat,
+          max_lat = EXCLUDED.max_lat,
+          min_lon = EXCLUDED.min_lon,
+          max_lon = EXCLUDED.max_lon,
+          updated_at = now();
+      `,
+      [user_id, min_lat, max_lat, min_lon, max_lon]
+    );
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
