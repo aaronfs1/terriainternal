@@ -249,26 +249,31 @@
       </style>
       
 </head>
-<!-- 🔐 Access Denied Only On Refresh -->
+<!-- 🔐 Re-auth-on-refresh, instead of redirecting immediately -->
 <script>
   (function () {
     const token = localStorage.getItem('accessToken');
 
-    // Check if page was reloaded (modern way)
+    // If first visit (no token), go to login
+    if (!token) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    // Only show reauth on actual "reload"
     const navEntries = performance.getEntriesByType("navigation");
     const isReload = navEntries.length > 0 && navEntries[0].type === "reload";
 
     if (isReload) {
-      // Page was refreshed
-      alert("Access denied. Please log in first.");
-      window.location.href = 'index.html';
-    } else if (!token) {
-      // First visit but no token
-      alert("Access denied. Please log in first.");
-      window.location.href = 'index.html';
+      // mark that we need reauth (used by the modal script below)
+      sessionStorage.setItem('needsReauth', '1');
+    } else {
+      sessionStorage.removeItem('needsReauth');
+      sessionStorage.removeItem('reauthAttempts');
     }
   })();
 </script>
+
 
 
 <script>
@@ -339,6 +344,236 @@
         modal.style.display = "none";
       }
     </script>
+
+
+
+
+
+
+
+
+
+<!-- 🔒 Re-auth Modal (shown only on refresh) -->
+<style>
+  .reauth-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    display: none; /* toggled by JS */
+    z-index: 2147483000; /* above everything */
+  }
+  .reauth-wrap {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    z-index: 2147483001;
+  }
+  .reauth-card {
+    width: 380px; max-width: 90vw;
+    background: #fff; border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    padding: 22px;
+    pointer-events: all;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  .reauth-card h3 { margin: 0 0 10px; }
+  .reauth-card p  { margin: 0 0 14px; color: #555; font-size: 14px; }
+  .reauth-field { margin-bottom: 12px; }
+  .reauth-field label { display: block; margin-bottom: 6px; font-size: 13px; color: #444; }
+  .reauth-field input {
+    width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;
+  }
+  .reauth-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .reauth-actions button {
+    flex: 1; padding: 10px 12px; border: 0; border-radius: 8px; cursor: pointer; font-weight: 600;
+  }
+  .reauth-submit { background: linear-gradient(90deg,#667eea,#764ba2); color: #fff; }
+  .reauth-cancel { background: #f1f1f1; color: #333; }
+  .reauth-error { min-height: 18px; color: #e74c3c; font-size: 13px; margin-top: 6px; }
+  body.reauth-lock { overflow: hidden; }
+</style>
+
+<div id="reauthBackdrop" class="reauth-backdrop"></div>
+<div id="reauthWrap" class="reauth-wrap" style="display:none;">
+  <div class="reauth-card">
+    <h3>Confirm your identity</h3>
+    <p>We detected a page refresh. Please re‑enter your credentials to continue.</p>
+    <div class="reauth-field">
+      <label for="reauthEmail">Email</label>
+      <input type="email" id="reauthEmail" autocomplete="email" />
+    </div>
+    <div class="reauth-field">
+      <label for="reauthPassword">Password</label>
+      <input type="password" id="reauthPassword" autocomplete="current-password" />
+    </div>
+    <div id="reauthError" class="reauth-error"></div>
+    <div class="reauth-actions">
+      <button id="reauthSubmit" class="reauth-submit">Continue</button>
+      <button id="reauthCancel" class="reauth-cancel">Logout</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ========= Re-auth logic =========
+  (function () {
+    const needs = sessionStorage.getItem('needsReauth') === '1';
+    if (!needs) return;
+
+    const MAX_ATTEMPTS = 2;
+    const wrap     = document.getElementById('reauthWrap');
+    const backdrop = document.getElementById('reauthBackdrop');
+    const emailEl  = document.getElementById('reauthEmail');
+    const passEl   = document.getElementById('reauthPassword');
+    const errEl    = document.getElementById('reauthError');
+    const btnOK    = document.getElementById('reauthSubmit');
+    const btnOut   = document.getElementById('reauthCancel');
+
+      let allowRealUnload = false;
+
+      function showModal(prefillOnly=false) {
+    document.body.classList.add('reauth-lock');
+    wrap.style.display = 'flex';
+    backdrop.style.display = 'block';
+
+    // Prefill email if you saved it at login
+    const savedName = localStorage.getItem('userNameEmail');
+    if (savedName && savedName.includes('@')) emailEl.value = savedName;
+
+    if (!prefillOnly) setTimeout(() => (emailEl.value ? passEl.focus() : emailEl.focus()), 0);
+  }
+
+  function hideModal() {
+    document.body.classList.remove('reauth-lock');
+    wrap.style.display = 'none';
+    backdrop.style.display = 'none';
+    errEl.textContent = '';
+    passEl.value = '';
+  }
+
+  function logoutAndRedirect() {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('isAdmin');
+    window.location.href = 'index.html';
+  }
+
+  async function attemptReauth() {
+    errEl.textContent = '';
+    const email = (emailEl.value || '').trim();
+    const password = passEl.value || '';
+    if (!email || !password) {
+      errEl.textContent = 'Please fill in both fields.';
+      return;
+    }
+
+    try {
+      const res = await fetch('http://localhost:3002/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Invalid credentials');
+
+      // update creds
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('userName', data.name);
+      localStorage.setItem('isAdmin', data.isAdmin);
+      localStorage.setItem('userNameEmail', email);
+
+      hideModal();
+
+      // tiny toast
+      setTimeout(() => {
+        const t = document.createElement('div');
+        t.textContent = 'Re-authenticated. Continuing without refresh.';
+        Object.assign(t.style, {
+          position: 'fixed', right: '16px', bottom: '16px',
+          background: '#333', color: 'white', padding: '10px 14px',
+          borderRadius: '8px', zIndex: 2147483646, boxShadow: '0 4px 12px rgba(0,0,0,.3)'
+        });
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2500);
+      }, 150);
+    } catch (e) {
+      const cur = parseInt(sessionStorage.getItem('reauthAttempts') || '0', 10) + 1;
+      sessionStorage.setItem('reauthAttempts', String(cur));
+      if (cur >= MAX_ATTEMPTS) {
+        errEl.textContent = 'Too many failed attempts. Logging out…';
+        setTimeout(logoutAndRedirect, 800);
+      } else {
+        errEl.textContent = 'Invalid email or password. Try again.';
+        passEl.select();
+        passEl.focus();
+      }
+    }
+  }
+
+  btnOK.addEventListener('click', attemptReauth);
+  btnOut.addEventListener('click', logoutAndRedirect);
+  passEl.addEventListener('keydown', e => { if (e.key === 'Enter') attemptReauth(); });
+  emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') passEl.focus(); });
+
+  /** ====== Intercept refresh/unload attempts ======
+   *  - F5 / Ctrl+R / Cmd+R
+   *  - any navigation that would unload (beforeunload)
+   *  We cancel them and show the modal instead.
+   */
+
+  // 1) Keyboard refresh
+  window.addEventListener('keydown', (e) => {
+    const isReloadKey =
+      e.key === 'F5' ||
+      ((e.key === 'r' || e.key === 'R') && (e.ctrlKey || e.metaKey));
+
+    if (isReloadKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      showModal();
+    }
+  }, { capture: true });
+
+  // 2) Attempted unload (closing tab, navigating away, etc.)
+  window.addEventListener('beforeunload', (e) => {
+    if (allowRealUnload) return;   // not used in this flow; kept for future
+    // If they have a token, we block and ask to re-auth instead of losing state
+    if (localStorage.getItem('accessToken')) {
+      e.preventDefault();
+      e.returnValue = ''; // required for Chrome to show the native confirm
+      // Immediately present your own modal too (most browsers still cancel if user stays)
+      showModal();
+      // Returning a string is ignored by modern browsers; the blank string is enough to trigger the dialog.
+      return '';
+    }
+  });
+
+  // 3) Optional: if a soft reauth is required on hard reload detection (from your earlier code),
+  //    pre-open the modal once page loads:
+  if (sessionStorage.getItem('needsReauth') === '1') {
+    showModal(true);
+    // clean up
+    sessionStorage.removeItem('needsReauth');
+    sessionStorage.removeItem('reauthAttempts');
+  }
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <script>
   async function openGrafanaDashboard() {
@@ -815,5 +1050,8 @@ let waitingForSummaryChoice = false;
   });
 
 </script>
+
+
+
 </body>
 </html>
